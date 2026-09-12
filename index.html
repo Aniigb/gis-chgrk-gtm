@@ -7,31 +7,33 @@
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 <link rel="shortcut icon" href="favicon.ico">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans:wght@400;600;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <style>
   :root{
-    --bg:#0c1720; --panel:#eee9dc; --ink:#1a232e; --mut:#5f6b78;
-    --c-centr:#2f6fb2; --c-talnakh:#c05a2e; --c-kayerkan:#3d8a5a;
-    --ok:#2e7d32; --risk:#e08a00; --crit:#c8372d; --line:#cdc6b4;
+    --bg:#14295E; --panel:#F3F4F7; --ink:#1b2440; --mut:#8994AF;
+    --c-centr:#14295E; --c-talnakh:#EF3F23; --c-kayerkan:#5b7ec4;
+    --ok:#2e7d32; --risk:#e08a00; --crit:#c8372d; --line:#DFE2EA;
   }
   *{box-sizing:border-box; margin:0; padding:0}
-  html,body{height:100%; font:14px/1.45 "Segoe UI","PT Sans",-apple-system,"Helvetica Neue",Arial,sans-serif; color:var(--ink)}
+  html,body{height:100%; font:14px/1.45 "Noto Sans","Segoe UI","PT Sans",-apple-system,"Helvetica Neue",Arial,sans-serif; color:var(--ink)}
   #app{display:grid; grid-template-columns:330px 1fr 420px; grid-template-rows:56px auto 1fr auto; height:100vh}
   header{grid-column:1/4; background:var(--bg); color:#eef2f6; display:flex; align-items:center; gap:18px; padding:0 18px}
   header h1{font-size:16px; font-weight:600; letter-spacing:.3px; white-space:nowrap}
-  header .sub{font-size:12px; color:#9fb0bf}
+  header .sub{font-size:12px; color:#a6b1cc}
   header .stats{margin-left:auto; display:flex; gap:14px; font-size:12px; align-items:center}
   header .stats b{font-size:15px}
   header .dot{display:inline-block; width:9px; height:9px; border-radius:50%; margin-right:5px; vertical-align:1px}
-  #gear{background:none; border:1px solid #3a4c5c; color:#cdd8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px}
-  #gear:hover{background:#1b2c3a}
+  #gear{background:none; border:1px solid #3d5386; color:#d4dbea; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px}
+  #gear:hover{background:#0e1c45}
   /* Кнопка «Пороги и КК» — мигающая оранжевая подсветка */
-  @keyframes gearBlink{0%,100%{background:#8a4d0f; border-color:#e8963c; color:#fff3e0; box-shadow:0 0 9px rgba(232,150,60,.6)}50%{background:transparent; border-color:#3a4c5c; color:#cdd8e2; box-shadow:none}}
+  @keyframes gearBlink{0%,100%{background:#8a4d0f; border-color:#e8963c; color:#fff3e0; box-shadow:0 0 9px rgba(232,150,60,.6)}50%{background:transparent; border-color:#3d5386; color:#d4dbea; box-shadow:none}}
   #gear{animation:gearBlink 1.6s ease-in-out infinite; font-weight:600}
-  @keyframes meteoBlink{0%,100%{background:#0d4a66; border-color:#4fc3f7; color:#e1f5fe; box-shadow:0 0 10px rgba(79,195,247,.65)}50%{background:transparent; border-color:#3a4c5c; color:#cdd8e2; box-shadow:none}}
+  @keyframes meteoBlink{0%,100%{background:#0d4a66; border-color:#4fc3f7; color:#e1f5fe; box-shadow:0 0 10px rgba(79,195,247,.65)}50%{background:transparent; border-color:#3d5386; color:#d4dbea; box-shadow:none}}
   #meteoBtn{animation:meteoBlink 1.6s ease-in-out infinite; font-weight:600}
 
   #side{background:var(--panel); border-right:1px solid var(--line); display:flex; flex-direction:column; min-height:0}
@@ -44,30 +46,30 @@
   .chip.on .n{color:#b9c6d2}
   #search{margin:4px 12px 10px; padding:7px 10px; border:1px solid var(--line); border-radius:6px; font-size:13px; width:calc(100% - 24px)}
   #list{overflow-y:auto; flex:1; border-top:1px solid var(--line)}
-  .item{padding:8px 14px; border-bottom:1px solid #e7e1d6; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:baseline}
-  .item:hover{background:#ece7dd}
-  .item.sel{background:#e2ecf6; border-left:3px solid var(--c-centr); padding-left:11px}
+  .item{padding:8px 14px; border-bottom:1px solid #e6e9f0; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:baseline}
+  .item:hover{background:#edeff4}
+  .item.sel{background:#e2e7f6; border-left:3px solid var(--c-centr); padding-left:11px}
   .item .a{font-size:13px}
   .item .a .sdot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px}
   .item .t{font-size:11.5px; color:var(--mut); white-space:nowrap}
   .item .t.has{color:var(--crit); font-weight:600}
-  .fitem{padding:5px 14px 5px 26px; border-bottom:1px solid #efe9df; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:baseline; background:#faf8f3}
-  .fitem:hover{background:#ece7dd}
-  .fitem.sel{background:#e2ecf6; border-left:3px solid var(--c-centr); padding-left:23px}
-  .fitem .a{font-size:12px; color:#4a4438}
+  .fitem{padding:5px 14px 5px 26px; border-bottom:1px solid #e9ecf2; cursor:pointer; display:flex; justify-content:space-between; gap:8px; align-items:baseline; background:#fafbfc}
+  .fitem:hover{background:#edeff4}
+  .fitem.sel{background:#e2e7f6; border-left:3px solid var(--c-centr); padding-left:23px}
+  .fitem .a{font-size:12px; color:#49506a}
   .fitem .t{font-size:11px; color:var(--mut); white-space:nowrap}
-  .fac-toggle{padding:3px 14px 3px 22px; font-size:11px; color:var(--mut); cursor:pointer; user-select:none; background:#f3efe7; border-bottom:1px solid #efe9df}
+  .fac-toggle{padding:3px 14px 3px 22px; font-size:11px; color:var(--mut); cursor:pointer; user-select:none; background:#f0f2f7; border-bottom:1px solid #e9ecf2}
   .fac-toggle:hover{color:#333}
-  #map{background:#dfe6ea; position:relative}
+  #map{background:#e3e6ee; position:relative}
   #map .leaflet-control-attribution{display:none} /* идентификация карты скрыта по требованию заказчика */
-  .district-label{font-weight:700; font-size:13px; letter-spacing:1px; color:#33404d; background:rgba(255,255,255,.75); padding:2px 8px; border-radius:4px; border:none; box-shadow:none}
+  .district-label{font-weight:700; font-size:13px; letter-spacing:1px; color:#14295E; background:rgba(255,255,255,.75); padding:2px 8px; border-radius:4px; border:none; box-shadow:none}
 
   #detail{background:var(--panel); border-left:1px solid var(--line); overflow-y:auto; padding:16px}
   #detail h2{font-size:17px; margin-bottom:2px}
   #detail .rayon{font-size:12.5px; color:var(--mut); margin-bottom:10px}
   #detail .rayon b{font-weight:600}
   table.kv{width:100%; border-collapse:collapse; font-size:12.8px; margin-bottom:12px}
-  table.kv td{padding:4px 6px; border-bottom:1px solid #e7e1d6; vertical-align:top}
+  table.kv td{padding:4px 6px; border-bottom:1px solid #e6e9f0; vertical-align:top}
   table.kv td:first-child{color:var(--mut); width:46%}
   .sect{font-size:11.5px; text-transform:uppercase; letter-spacing:1px; color:var(--mut); margin:16px 0 6px}
   canvas.plot{width:100%; background:#fff; border:1px solid var(--line); border-radius:4px}
@@ -80,19 +82,19 @@
   .b-card{background:#e3e8ec; color:var(--mut)}
   .legend{position:absolute; right:14px; bottom:34px; z-index:600; background:rgba(255,255,255,.92); border:1px solid var(--line); border-radius:6px; padding:8px 12px; font-size:12px; user-select:none; height:160px; box-sizing:border-box; display:flex; flex-direction:column; justify-content:center}
   .legend div{margin:2px -6px; padding:1px 6px; cursor:pointer; border-radius:4px}
-  .legend div:hover{background:#e8eff4}
-  .legend div.sel{outline:2px solid var(--c-centr); background:#e8eff4; font-weight:700}
+  .legend div:hover{background:#e6eaf5}
+  .legend div.sel{outline:2px solid var(--c-centr); background:#e6eaf5; font-weight:700}
   .legend .cnt{margin-left:5px; font-weight:700; color:#1d2733}
   header .stats .stchip{cursor:pointer; padding:1px 5px; border-radius:4px}
   header .stats .stchip:hover{background:rgba(255,255,255,.16)}
   /* ---------- бегущая строка статусов под картой ---------- */
-  #mapTicker{position:absolute; left:0; right:0; bottom:0; z-index:650; height:26px; overflow:hidden; display:flex; align-items:center; background:rgba(15,28,38,.92); color:#e8eef3; border-top:1px solid #3a4c5c}
+  #mapTicker{position:absolute; left:0; right:0; bottom:0; z-index:650; height:26px; overflow:hidden; display:flex; align-items:center; background:rgba(15,28,38,.92); color:#e8eef3; border-top:1px solid #3d5386}
   #mapTicker .tk{display:flex; white-space:nowrap; animation:tkScroll 40s linear infinite; will-change:transform}
   #mapTicker .tk span{padding-right:90px; font-size:12.3px; letter-spacing:.02em}
   #mapTicker:hover .tk{animation-play-state:paused}
   #gtmCov{position:absolute; left:8px; bottom:34px; z-index:640; background:rgba(255,255,255,.93); border:1px solid var(--line); border-radius:8px; padding:6px 8px 4px; box-shadow:0 2px 10px rgba(20,30,40,.18); height:160px; box-sizing:border-box}
   @media (max-width:900px){ #gtmCov{transform:scale(.82); transform-origin:bottom left} }
-  #wxTicker{position:absolute; left:0; right:64px; top:0; z-index:650; height:24px; overflow:hidden; display:flex; align-items:center; background:rgba(15,28,38,.88); color:#dfe9f0; border-bottom:1px solid #3a4c5c}
+  #wxTicker{position:absolute; left:0; right:64px; top:0; z-index:650; height:24px; overflow:hidden; display:flex; align-items:center; background:rgba(15,28,38,.88); color:#dfe9f0; border-bottom:1px solid #3d5386}
   #wxTicker .tk{display:flex; white-space:nowrap; animation:tkScroll 46s linear infinite; will-change:transform}
   #wxTicker .tk span{padding-right:110px; font-size:12px; letter-spacing:.02em}
   #wxTicker:hover .tk{animation-play-state:paused}
@@ -122,9 +124,9 @@
   table.kv input.ed:hover, table.kv select.ed:hover, table.kv textarea.ed:hover{border-color:var(--line); background:#fff}
   table.kv input.ed:focus, table.kv select.ed:focus, table.kv textarea.ed:focus{border-color:var(--c-centr); background:#fff; outline:none}
   table.rows{width:100%; border-collapse:collapse; font-size:12.3px; margin-bottom:8px}
-  table.rows th{background:#ece7dd; padding:4px 6px; text-align:left; font-weight:600; border:1px solid #ddd5c6; font-size:11.3px}
-  table.rows td{padding:3px 4px; border:1px solid #e7e1d6; vertical-align:top}
-  table.rows.kk tr.grp td{background:#d8d2c4; font-weight:700; font-size:11.8px; color:#3c3a34}
+  table.rows th{background:#edeff4; padding:4px 6px; text-align:left; font-weight:600; border:1px solid #ddd5c6; font-size:11.3px}
+  table.rows td{padding:3px 4px; border:1px solid #e6e9f0; vertical-align:top}
+  table.rows.kk tr.grp td{background:#cfd4de; font-weight:700; font-size:11.8px; color:#3c3a34}
   table.rows.kk td.mut{color:var(--mut); font-size:11.5px}
   table.rows input, table.rows select{width:100%; border:1px solid transparent; background:transparent; padding:2px 4px; font-size:12.3px; font-family:inherit}
   table.rows input:focus, table.rows select:focus{border-color:var(--c-centr); background:#fff; outline:none}
@@ -141,7 +143,7 @@
   .photos figure{border:1px solid var(--line); border-radius:4px; overflow:hidden; background:#fff}
   .photos img{width:100%; height:90px; object-fit:cover; display:block; cursor:pointer}
   .photos figcaption{font-size:10.5px; padding:3px 6px; color:var(--mut); display:flex; justify-content:space-between; align-items:center}
-  .ukgroup{position:sticky; top:0; background:#e4ded2; padding:5px 14px; font-size:11.5px; font-weight:700; letter-spacing:.4px; color:#5a5346; border-bottom:1px solid var(--line); z-index:5}
+  .ukgroup{position:sticky; top:0; background:#dfe2ea; padding:5px 14px; font-size:11.5px; font-weight:700; letter-spacing:.4px; color:#5a5346; border-bottom:1px solid var(--line); z-index:5}
   .ukgroup .n{font-weight:400; color:var(--mut); margin-left:6px}
   /* --- аккордеон по группам объектов (полный реестр ЧГОК) --- */
   .acc-h{padding:7px 14px; font-size:12.5px; font-weight:700; color:#4a4234; background:#efe9dc; border-bottom:1px solid var(--line); cursor:pointer; user-select:none; display:flex; justify-content:space-between; align-items:center}
@@ -186,7 +188,7 @@
   #regModal .close{float:right; border:none; background:none; font-size:20px; cursor:pointer; color:var(--mut)}
   #regWrap{overflow:auto; flex:1; margin-top:10px; border:1px solid var(--line); border-radius:6px; background:#fff}
   table.reg{width:100%; border-collapse:collapse; font-size:12.2px}
-  table.reg th{position:sticky; top:0; background:#e4ded2; padding:6px 8px; text-align:left; border-bottom:2px solid var(--line); font-size:11.5px; z-index:2}
+  table.reg th{position:sticky; top:0; background:#dfe2ea; padding:6px 8px; text-align:left; border-bottom:2px solid var(--line); font-size:11.5px; z-index:2}
   table.reg td{padding:5px 8px; border-bottom:1px solid #eee7da; vertical-align:top}
   table.reg tr:hover td{background:#f2ede3}
   /* ---------- нормативная документация ---------- */
@@ -196,10 +198,10 @@
   #ntdModal .close{float:right; border:none; background:none; font-size:20px; cursor:pointer; color:var(--mut)}
   #ntdWrap{overflow:auto; flex:1; margin-top:10px; border:1px solid var(--line); border-radius:6px; background:#fff}
   table.ntd{width:100%; border-collapse:collapse; font-size:12.2px}
-  table.ntd th{position:sticky; top:0; background:#e4ded2; padding:6px 8px; text-align:left; border-bottom:2px solid var(--line); font-size:11.5px; z-index:2}
+  table.ntd th{position:sticky; top:0; background:#dfe2ea; padding:6px 8px; text-align:left; border-bottom:2px solid var(--line); font-size:11.5px; z-index:2}
   table.ntd td{padding:5px 8px; border-bottom:1px solid #eee7da; vertical-align:top}
   table.ntd tr:hover td{background:#f2ede3}
-  table.ntd tr.grp td{background:#d8d2c4; font-weight:700; font-size:12.5px; color:#3c3a34}
+  table.ntd tr.grp td{background:#cfd4de; font-weight:700; font-size:12.5px; color:#3c3a34}
   .bst{display:inline-block; padding:1px 9px; border-radius:9px; font-size:11px; font-weight:700; white-space:nowrap}
   .bst.ok{background:#e3efe0; color:#2e6b34; border:1px solid #9ec79a}
   .bst.part{background:#f7f0d8; color:#8a6d1d; border:1px solid #d9c47a}
@@ -216,7 +218,7 @@
   #txtBar select, #txtBar input{border:1px solid var(--line); border-radius:5px; padding:4px 7px; font-size:12.5px; font-family:inherit}
   #txtBody{overflow:auto; flex:1; background:#fff; border:1px solid var(--line); border-radius:6px; padding:14px 18px; font-size:12.6px; line-height:1.55; white-space:pre-wrap; word-break:break-word; font-family:'Segoe UI',Arial,sans-serif; margin:0; min-height:200px}
   #txtBody mark{background:#ffe58a; padding:0 1px}
-  table.rows tr.grp td{background:#d8d2c4; font-weight:700; font-size:11.8px; color:#3c3a34}
+  table.rows tr.grp td{background:#cfd4de; font-weight:700; font-size:11.8px; color:#3c3a34}
   table.rows td.mut{color:var(--mut); font-size:11.5px}
   .vbtn{border:1px solid #b9c4d0; background:#fff; border-radius:5px; padding:1px 8px; font-size:11.5px; cursor:pointer; white-space:nowrap; color:#2f5f8f}
   .vbtn:hover{border-color:var(--c-centr); color:var(--c-centr)}
@@ -247,7 +249,7 @@
   details.wt>summary:hover, details.igt>summary:hover{background:#f3eee2}
   details.wt[open]>summary, details.igt[open]>summary{border-bottom:1px solid #e2dccc}
   /* ---------- термометрия: сводка + выпадающие подразделы ---------- */
-  .twsum{border:1px solid var(--line); border-left:4px solid #8a97a3; border-radius:8px; background:#fff; padding:8px 12px 2px; margin:0 0 10px}
+  .twsum{border:1px solid var(--line); border-left:4px solid #8994AF; border-radius:8px; background:#fff; padding:8px 12px 2px; margin:0 0 10px}
   .twnav{display:flex; flex-wrap:nowrap; overflow-x:auto; -webkit-overflow-scrolling:touch; scrollbar-width:thin; gap:6px; margin:0 0 8px; position:-webkit-sticky; position:sticky; top:var(--tabsh,0px); z-index:16; background:var(--panel); padding:6px 2px 8px; border-radius:0 0 8px 8px; box-shadow:0 3px 8px rgba(15,28,38,.10)}
   .twnav a{flex:0 0 auto; border:1px solid #9ec6a4; background:#eef6ef; border-radius:14px; padding:3px 11px; font-size:11.8px; cursor:pointer; color:#1b5e20; text-decoration:none; user-select:none; font-weight:600}
   .twnav a:hover{background:#d9ecdd; border-color:#2e7d32}
@@ -333,7 +335,7 @@
     table.kv{font-size:12px}
     table.kv td{display:block; width:100% !important; border-bottom:none; padding:2px 4px}
     table.kv td:first-child{color:var(--mut); padding-top:6px}
-    table.kv tr{border-bottom:1px solid #e7e1d6; display:block}
+    table.kv tr{border-bottom:1px solid #e6e9f0; display:block}
     table.rows{font-size:11.5px}
     .twrap>table.rows{min-width:560px}
     .twrap>table.rows.narrowT{min-width:0}
@@ -355,7 +357,7 @@
   #loginModal .sub2{font-size:12px; color:var(--mut); margin-bottom:16px}
   #loginModal input{width:100%; padding:9px 12px; border:1px solid var(--line); border-radius:6px; font-size:14px; margin-bottom:10px}
   #loginModal button[type=submit]{width:100%; padding:9px; background:var(--bg); color:#fff; border:none; border-radius:6px; font-size:14px; cursor:pointer}
-  #loginModal button[type=submit]:hover{background:#1b2c3a}
+  #loginModal button[type=submit]:hover{background:#0e1c45}
   #loginModal .lerr{color:var(--crit); font-size:12.5px; min-height:17px; margin-top:8px}
   #loginModal .lnote{font-size:11.3px; color:var(--mut); margin-top:10px; border-top:1px solid var(--line); padding-top:10px}
   #loginModal .rbtn{display:block; width:100%; text-align:left; padding:10px 12px; margin-bottom:8px; background:#f6f8f9; border:1px solid var(--line); border-radius:8px; cursor:pointer; font-size:13px; font-family:inherit}
@@ -366,10 +368,10 @@
   #loginModal .pwrole{font-size:12.5px; margin-bottom:10px; color:var(--mut)}
   #loginModal .pwrole b{color:var(--bg)}
   #loginModal .pwrole a{margin-left:8px; font-size:11.5px}
-  #logoutBtn{background:none; border:1px solid #3a4c5c; color:#cdd8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px}
-  #logoutBtn:hover{background:#1b2c3a}
+  #logoutBtn{background:none; border:1px solid #3d5386; color:#d4dbea; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px}
+  #logoutBtn:hover{background:#0e1c45}
   /* Индикация активной роли в шапке — мигающая зелёная подсветка (активна только после входа, когда бейдж заполнен) */
-  @keyframes roleBlink{0%,100%{background:#1e5c38; border-color:#4caf7d; color:#eafff3; box-shadow:0 0 9px rgba(76,175,125,.6)}50%{background:transparent; border-color:#3a4c5c; color:#9fb0bf; box-shadow:none}}
+  @keyframes roleBlink{0%,100%{background:#1e5c38; border-color:#4caf7d; color:#eafff3; box-shadow:0 0 9px rgba(76,175,125,.6)}50%{background:transparent; border-color:#3d5386; color:#a6b1cc; box-shadow:none}}
   #roleBadge:not(:empty){animation:roleBlink 1.6s ease-in-out infinite; font-weight:600}
   /* Ролевая модель (ГрК РФ; СП 305.1325800.2017): наблюдатель — просмотр; оператор — ведение базы; надзор — контроль без редактирования */
   body.role-view #uploadBtn, body.role-insp #uploadBtn, body.role-view .addrow, body.role-insp .addrow, body.role-view .delrow, body.role-insp .delrow{display:none !important}
@@ -400,7 +402,7 @@
   .mt-kpi .k span{font-size:11px; color:var(--mut)}
   .mt-tabs{display:flex; gap:6px; flex-wrap:wrap; margin:8px 0}
   .mt-tabs button{border:1px solid var(--line); background:#fff; border-radius:6px; padding:4px 12px; font-size:12.5px; cursor:pointer}
-  .mt-tabs button.on{background:#2f6fb2; color:#fff; border-color:#2f6fb2}
+  .mt-tabs button.on{background:#14295E; color:#fff; border-color:#14295E}
   .mt-tbl{border-collapse:collapse; font-size:11.5px; width:100%; margin-top:6px}
   .mt-tbl td,.mt-tbl th{border:1px solid var(--line); padding:2px 5px; text-align:right}
   .mt-tbl th{background:#eef3f7; text-align:center; position:sticky; top:0}
@@ -415,7 +417,7 @@
   .tg-вработе{background:#fbe8c8; color:#a86400}
   .tg-устранено{background:#d8ecd9; color:var(--ok)}
   .tg-просрочено{background:#f7dcd7; color:var(--crit)}
-  .tg-reply{border-left:3px solid var(--line); margin:6px 0 0 10px; padding:4px 10px; font-size:12.3px; background:#faf8f3}
+  .tg-reply{border-left:3px solid var(--line); margin:6px 0 0 10px; padding:4px 10px; font-size:12.3px; background:#fafbfc}
   /* ---------- текущий осмотр (интерактивный чек-лист) ---------- */
   .insp-sec{border:1px solid var(--line); border-radius:8px; background:#fff; margin:8px 0}
   .insp-sec>summary{cursor:pointer; padding:9px 12px; font-weight:600; font-size:13px; list-style:none; display:flex; justify-content:space-between; gap:8px}
@@ -454,18 +456,19 @@
 <body>
 <div id="app">
   <header>
+    <span title="ГК «Русская платина»" style="display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:#F3F4F7; color:#14295E; font-weight:700; font-size:13.5px; letter-spacing:.5px; flex:none; box-shadow:inset 0 -3px 0 #EF3F23">РП</span>
     <div>
       <h1>ГТМ зданий и сооружений. ООО «Черногорская ГРК»</h1>
-      <div class="sub">Геотехнический мониторинг зданий и сооружений · Черногорский горно-обогатительный комбинат</div>
+      <div class="sub">Геотехнический мониторинг зданий и сооружений · Черногорский горно-обогатительный комбинат · ГК «Русская платина»</div>
     </div>
     <div class="stats" id="hstats"></div>
-    <span id="roleBadge" style="font-size:11px; color:#9fb0bf; border:1px solid #3a4c5c; border-radius:10px; padding:2px 10px"></span>
-    <button id="regBtn" title="Сводный реестр объектов РИСК/КРИТИЧНО" style="background:none; border:1px solid #3a4c5c; color:#cdd8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">▤ Реестр</button><span id="warnBadge" title="Активные предупреждения о критичных погодных условиях (прогноз 10 суток)"></span>
-    <button id="ntdBtn" title="Нормативная документация по ГТМ зданий и сооружений: действующие редакции, статусы, применимость к объектам на многолетнемерзлых грунтах (по заданию на ГТМ ЧГОК и отраслевым НД)" style="background:none; border:1px solid #3a4c5c; color:#cdd8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">§ Нормативка</button>
-    <button id="meteoBtn" title="Метеоданные г. Норильска (площадка Черногорского ГОК): история с 1950 г., автопополнение из открытых метеоархивов, аномалии, тренды, прогноз, параметры для теплотехнических расчётов (СП 25.13330.2020, прил. Г)" style="background:none; border:1px solid #3a4c5c; color:#cdd8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">🌦 Метеоданные</button>
-    <button id="repBtn" title="Формирование сводного отчёта" style="background:none; border:1px solid #3a4c5c; color:#cdd8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">📄 Отчёт</button>
+    <span id="roleBadge" style="font-size:11px; color:#a6b1cc; border:1px solid #3d5386; border-radius:10px; padding:2px 10px"></span>
+    <button id="regBtn" title="Сводный реестр объектов РИСК/КРИТИЧНО" style="background:none; border:1px solid #3d5386; color:#d4dbea; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">▤ Реестр</button><span id="warnBadge" title="Активные предупреждения о критичных погодных условиях (прогноз 10 суток)"></span>
+    <button id="ntdBtn" title="Нормативная документация по ГТМ зданий и сооружений: действующие редакции, статусы, применимость к объектам на многолетнемерзлых грунтах (по заданию на ГТМ ЧГОК и отраслевым НД)" style="background:none; border:1px solid #3d5386; color:#d4dbea; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">§ Нормативка</button>
+    <button id="meteoBtn" title="Метеоданные г. Норильска (площадка Черногорского ГОК): история с 1950 г., автопополнение из открытых метеоархивов, аномалии, тренды, прогноз, параметры для теплотехнических расчётов (СП 25.13330.2020, прил. Г)" style="background:none; border:1px solid #3d5386; color:#d4dbea; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">🌦 Метеоданные</button>
+    <button id="repBtn" title="Формирование сводного отчёта" style="background:none; border:1px solid #3d5386; color:#d4dbea; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px">📄 Отчёт</button>
     <button id="uploadBtn" title="Загрузка данных по шаблону">⬆ Загрузка данных</button>
-    <a id="presBtn" href="#" title="Презентация проекта — материалы готовятся" style="background:none; border:1px solid #3a4c5c; color:#cdd8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px; text-decoration:none; display:none">🖵 Презентация</a>
+    <a id="presBtn" href="#" title="Презентация проекта — материалы готовятся" style="background:none; border:1px solid #3d5386; color:#d4dbea; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px; text-decoration:none; display:none">🖵 Презентация</a>
     <button id="niokrBtn" title="Раздел НИОКР — в данной конфигурации не активирован" style="background:none; border:1px solid #5a4a6c; color:#cbb8e2; border-radius:6px; padding:4px 10px; cursor:pointer; font-size:13px; display:none">⚗ НИОКР</button>
     <button id="gear" title="Пороги статусов и контрольные критерии по программе ГТМ">⚙ Пороги и КК</button>
     <button id="logoutBtn" title="Выйти / сменить пользователя">⎋ Выход</button>
@@ -481,7 +484,7 @@
       <div data-st="НОРМА"><span class="sw" style="background:#2e7d32"></span>НОРМА<b class="cnt"></b></div>
       <div data-st="РИСК"><span class="sw" style="background:#e08a00"></span>РИСК<b class="cnt"></b></div>
       <div data-st="КРИТИЧНО"><span class="sw" style="background:#c8372d"></span>КРИТИЧНО<b class="cnt"></b></div>
-      <div data-st="__none__"><span class="sw" style="background:#8a97a3"></span>без замеров<b class="cnt"></b></div>
+      <div data-st="__none__"><span class="sw" style="background:#8994AF"></span>без замеров<b class="cnt"></b></div>
     </div>
     <div id="wxTicker" title="Текущая погода в Норильске (Open-Meteo, обновление каждые 30 мин; пауза — навести курсор)"><div class="tk"><span id="wxA">загрузка погоды…</span><span id="wxB" aria-hidden="true"></span></div></div>
     <div id="mapTicker" title="Бегущая строка: количество объектов по категориям состояния (пауза — навести курсор)"><div class="tk"><span id="tkA"></span><span id="tkB" aria-hidden="true"></span></div></div>
@@ -700,22 +703,27 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=cd521280"></script>
-<script src="db_p2.js?v=cd521280"></script>
-<script src="db_p3.js?v=cd521280"></script>
-<script src="db_p4.js?v=cd521280"></script>
-<script src="db_p5.js?v=cd521280"></script>
-<script src="db_p6.js?v=cd521280"></script>
-<script src="db_p7.js?v=cd521280"></script>
-<script src="db_p8.js?v=cd521280"></script>
+<script src="db_p1.js?v=842e5463"></script>
+<script src="db_p2.js?v=842e5463"></script>
+<script src="db_p3.js?v=842e5463"></script>
+<script src="db_p4.js?v=842e5463"></script>
+<script src="db_p5.js?v=842e5463"></script>
+<script src="db_p6.js?v=842e5463"></script>
+<script src="db_p7.js?v=842e5463"></script>
+<script src="db_p8.js?v=842e5463"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
 
 <div id="loginModal">
   <form class="lbox" id="loginForm">
-    <h2>ГТМ зданий и сооружений</h2>
-    <div class="sub2">ООО «Черногорская ГРК» · Черногорский ГОК</div>
+    <div style="display:flex; align-items:center; gap:12px; margin-bottom:4px">
+      <span style="display:inline-flex; align-items:center; justify-content:center; width:44px; height:44px; border-radius:9px; background:#14295E; color:#F3F4F7; font-weight:700; font-size:15px; letter-spacing:.5px; flex:none; box-shadow:inset 0 -4px 0 #EF3F23">РП</span>
+      <div>
+        <h2>ГТМ зданий и сооружений</h2>
+        <div class="sub2">ООО «Черногорская ГРК» · Черногорский ГОК · ГК «Русская платина»</div>
+      </div>
+    </div>
     <div id="rolePick">
       <button type="button" class="rbtn" data-r="view"><b>Наблюдатель</b><span>просмотр реестра, карты, карточек и графиков</span></button>
       <button type="button" class="rbtn" data-r="edit"><b>Оператор</b><span>загрузка замеров, ведение карточек, отчёты и выгрузки</span></button>
@@ -750,7 +758,7 @@
 })();
 </script>
 <script>window.__initApp=function(){
-const DCOL = {"Горно-технологический комплекс":"#c05a2e","Обогатительный комплекс":"#2f6fb2","Гидротехнические сооружения":"#1f8a8a","Объекты вспомогательного назначения":"#8a5aa8","Служба экстренного реагирования":"#c22f4e","Объекты энергоснабжения":"#d4a017","Межплощадочные коммуникации и сети":"#5a7a3a","Объекты водоотведения":"#3a6ea8","Автомобильные дороги":"#7a6a5a","Техническая безопасность и инженерная защита":"#4a6a8a"};
+const DCOL = {"Горно-технологический комплекс":"#EF3F23","Обогатительный комплекс":"#14295E","Гидротехнические сооружения":"#1f8a8a","Объекты вспомогательного назначения":"#8a5aa8","Служба экстренного реагирования":"#c22f4e","Объекты энергоснабжения":"#d4a017","Межплощадочные коммуникации и сети":"#5a7a3a","Объекты водоотведения":"#3a6ea8","Автомобильные дороги":"#7a6a5a","Техническая безопасность и инженерная защита":"#4a6a8a"};
 const SCOL = {"НОРМА":"#2e7d32","РИСК":"#e08a00","КРИТИЧНО":"#c8372d"};
 const DB = window.DB;
 
@@ -1433,7 +1441,7 @@ function thermDraw(){
     ctx.strokeStyle='#333'; ctx.lineWidth=.6; ctx.stroke();
   });
   thermCtl.style.display='block';
-  thermCtl.innerHTML='🌡 Глубина: '+THERM_DEPTHS.map(d=>`<button class="wbtn" data-td="${d}" style="padding:1px 6px; ${d===thermDepth?'background:#2f6fb2;color:#fff':''}">${d} м</button>`).join(' ')+
+  thermCtl.innerHTML='🌡 Глубина: '+THERM_DEPTHS.map(d=>`<button class="wbtn" data-td="${d}" style="padding:1px 6px; ${d===thermDepth?'background:#14295E;color:#fff':''}">${d} м</button>`).join(' ')+
     ` · изолинии 0,3 °C · <span style="color:#08306b">━</span> 0 °C · <span style="color:#08306b">■</span><0°C <span style="color:#f50818">■</span>>0°C`;
   thermCtl.querySelectorAll('[data-td]').forEach(bt=>bt.onclick=()=>{ thermDepth=+bt.dataset.td; thermDraw(); });
 }
@@ -1467,7 +1475,7 @@ function covPass(o){
 const COV_LABELS={tw:'термоскважины',pz:'пьезометры',gd:'геодезические марки',os:'осмотры (12 мес.)',full:'полный ГТМ'};
 const markers = {};
 let stFilter = null;   // кликабельная легенда: 'НОРМА' | 'РИСК' | 'КРИТИЧНО' | '__none__' | null
-function markerColor(o){ const st=statusOf(o); return st?SCOL[st]:'#8a97a3'; }
+function markerColor(o){ const st=statusOf(o); return st?SCOL[st]:'#8994AF'; }
 function drawMarkers(){
   const kpYear=String(new Date().getFullYear());
   DB.objects.forEach((o,i)=>{
@@ -1578,10 +1586,10 @@ function gtmCovDraw(){
     if(t)tw++; if(p)pz++; if(g)gd++; if(m)os++; if(t&&p&&g&&m)full++;
   });
   const n=objs.length||1;
-  const rows=[['tw','Термоскважины',tw,'#2f6fb2'],['pz','Пьезометры',pz,'#7a3fc9'],['gd','Геодезические марки',gd,'#2e7d32'],['os','Осмотры (12 мес.)',os,'#e08a00'],['full','Полный ГТМ',full,'#7b5ea7']];
+  const rows=[['tw','Термоскважины',tw,'#14295E'],['pz','Пьезометры',pz,'#7a3fc9'],['gd','Геодезические марки',gd,'#2e7d32'],['os','Осмотры (12 мес.)',os,'#e08a00'],['full','Полный ГТМ',full,'#7b5ea7']];
   const ctx=cv.getContext('2d'); const W=cv.width, H=cv.height;
   ctx.clearRect(0,0,W,H);
-  ctx.font='bold 10.5px Segoe UI, sans-serif'; ctx.fillStyle='#33404d';
+  ctx.font='bold 10.5px Segoe UI, sans-serif'; ctx.fillStyle='#14295E';
   ctx.fillText('Охват ГТМ · объектов: '+objs.length+(covFilter?'':' · клик по строке — фильтр'), 2, 12);
   const barX=118, barW=W-barX-44, rowH=26;
   rows.forEach(([key,label,v,color],i)=>{
@@ -1644,7 +1652,7 @@ function renderStats(){
     `<span class="stchip" data-st="НОРМА" title="Клик — подсветить и приблизить на карте объекты в норме"><span class="dot" style="background:${SCOL.НОРМА}"></span><b>${n.НОРМА}</b> норма</span>
      <span class="stchip" data-st="РИСК" title="Клик — подсветить и приблизить на карте объекты с риском"><span class="dot" style="background:${SCOL.РИСК}"></span><b>${n.РИСК}</b> риск</span>
      <span class="stchip" data-st="КРИТИЧНО" title="Клик — подсветить и приблизить на карте критичные объекты"><span class="dot" style="background:${SCOL.КРИТИЧНО}"></span><b>${n.КРИТИЧНО}</b> критично</span>
-     <span><span class="dot" style="background:#8a97a3"></span><b>${DB.objects.length}</b> всего</span>`;
+     <span><span class="dot" style="background:#8994AF"></span><b>${DB.objects.length}</b> всего</span>`;
   document.querySelectorAll('#hstats .stchip').forEach(el=>el.addEventListener('click',()=>stSelApply(el.dataset.st)));
   // бегущая строка под картой
   const noData=DB.objects.length-n.НОРМА-n.РИСК-n.КРИТИЧНО;
@@ -1744,7 +1752,7 @@ function facOf(pid){ return (DB.facilities||[]).filter(f=>f.parent===pid); }
 renderList();
 
 /* ---------- ГОСТ-график (ГОСТ 25358-2020, прил. Д, рис. Д.1) ---------- */
-const DATE_COLORS=['#c8372d','#2f6fb2','#3d8a5a','#8a5aa8','#c8871a','#555'];
+const DATE_COLORS=['#c8372d','#14295E','#5b7ec4','#8a5aa8','#c8871a','#555'];
 function drawGostProfile(cv, o, wliter){
   const ctx=cv.getContext('2d');
   const W=cv.clientWidth, H=Math.max(430, cv.clientHeight||430);
@@ -3003,7 +3011,7 @@ function tabGeoterm(o, el){
     el.innerHTML =
     '<div class="normref">ГОСТ 25358-2020 «Грунты. Методы полевых измерений температуры»: график распределения температуры по глубине (прил. Д, рис. Д.1); график термоизоплет (прил. Д, рис. Д.2); глубина НГК — СП 25.13330.2020 (п. 3.1). Подразделы раскрываются кликом; графики строятся в момент раскрытия.</div>'
     +'<div class="twnav" id="twNav"></div>'
-    +'<div class="twsum" style="border-left-color:'+(SCOL[st]||'#8a97a3')+'">'
+    +'<div class="twsum" style="border-left-color:'+(SCOL[st]||'#8994AF')+'">'
     +'<div class="sect" style="margin-top:0">Тепловое состояние основания — сводка</div>'
     +'<table class="kv">'
     +'<tr><td>Глубина нулевых годовых колебаний (НГК)</td><td>'+(o.ngc?('<b>'+fmt(o.ngc.h,' м')+'</b> <span class="note">(по '+o.ngc.nW+' скв. с полными сезонными рядами)</span>'):'—')+'</td></tr>'
@@ -3158,7 +3166,7 @@ function renderBearing(o){
     <tr><td>Поверхность смерзания (Raf)</td><td>${sel(o,'pile','gk', bd.gk, gkOpts)}</td></tr>
     <tr><td>Грунт под торцом (R)</td><td>${sel(o,'pile','rk', bd.rk, rkOpts)} <span class="note">строка табл. В.1: ${bd.dr}</span></td></tr>
     <tr><td>Запас против проектной</td><td>${bd.k!==null
-      ?`<b style="color:${bd.k<TH.bearCrit?'#C8372D':(bd.k<TH.bearRisk?'#C8871A':'#3D8A5A')}">${(bd.k*100).toFixed(0)} %</b> (F_d ${bd.fd[bd.fd.length-1].toFixed(0)} кН при t средней ${bd.dates[bd.dates.length-1]} против ${bd.fd0.toFixed(0)} кН при T расч ${bd.tc} °C)`
+      ?`<b style="color:${bd.k<TH.bearCrit?'#C8372D':(bd.k<TH.bearRisk?'#C8871A':'#5b7ec4')}">${(bd.k*100).toFixed(0)} %</b> (F_d ${bd.fd[bd.fd.length-1].toFixed(0)} кН при t средней ${bd.dates[bd.dates.length-1]} против ${bd.fd0.toFixed(0)} кН при T расч ${bd.tc} °C)`
       :'<span class="note">не задана расчётная температура (вкладка «Паспорт объекта») — показана только динамика F_d</span>'}</td></tr>
   </table>
   <canvas class="plot" id="bearingChart"></canvas>
@@ -5057,7 +5065,7 @@ document.getElementById('wxDutyModal').addEventListener('click',e=>{ if(e.target
 /* ---------- скрытый раздел «НИОКР 2026 НПО Фундамент» (отдельный пароль) ---------- */
 const niokrModal=document.getElementById('niokrModal');
 /* ===== НИОКР 2026: трекер этапов · документы · живой журнал · связь с исполнителями ===== */
-const NK_ST={notstarted:{t:'не начато',c:'#8a93a3'},started:{t:'начато',c:'#2f6fb2'},control:{t:'сдан на входной контроль',c:'#e08a00'},accepted:{t:'принято Заказчиком',c:'#2e7d32'}};
+const NK_ST={notstarted:{t:'не начато',c:'#8a93a3'},started:{t:'начато',c:'#14295E'},control:{t:'сдан на входной контроль',c:'#e08a00'},accepted:{t:'принято Заказчиком',c:'#2e7d32'}};
 const NK_KIND={report:'📕 Отчёт',reestr:'📋 Реестр замечаний',letter:'✉ Письмо',act:'📑 Акт',program:'🗺 Программа',plan:'📅 План',app:'📎 Приложение'};
 const NK_LKIND={status:'🔁 Смена статуса',remark:'⚠ Замечание',change:'✎ Изменение',message:'✉ Сообщение',contact:'👤 Контакт'};
 let NK=null, NK_LOG=[], NK_LOCAL=[];
@@ -7203,7 +7211,7 @@ function mtRenderView(d){
       .map(r=>'<tr><td style="text-align:left">'+r[0]+'</td><td>'+r[1]+'</td><td><b>'+r[2]+'</b></td></tr>').join('')}
     </table>
     <div style="font-size:11.5px; color:var(--mut); margin-top:4px">* для формул прил. Г требуется температура поверхности грунта; в инженерной методике допускается принимать по температуре воздуха с поправками на покров — уточняется при расчёте в карточке объекта.</div>
-    <button id="mtToCalc" style="margin-top:8px; border:1px solid #2f6fb2; color:#fff; background:#2f6fb2; border-radius:6px; padding:6px 14px; font-size:12.5px; cursor:pointer">Передать в раздел «РАСЧЕТЫ» карточки объекта</button>
+    <button id="mtToCalc" style="margin-top:8px; border:1px solid #14295E; color:#fff; background:#14295E; border-radius:6px; padding:6px 14px; font-size:12.5px; cursor:pointer">Передать в раздел «РАСЧЕТЫ» карточки объекта</button>
     <span id="mtToCalcSt" style="font-size:12px; color:#2e7d32; margin-left:8px"></span>`;
     document.getElementById('mtToCalc').onclick=()=>{
       try{ sessionStorage.setItem('gtm_meteo_sp', JSON.stringify(sp)); }catch(e){}
@@ -7242,7 +7250,7 @@ function mtChart(cv,d,k){
   ctx.stroke();
   const ma=[];
   for(let i=0;i<pts.length;i++){ let s=0,n=0; for(let j=Math.max(0,i-11);j<=i;j++){ s+=pts[j].v; n++; } ma.push({x:pts[i].x, v:s/n}); }
-  ctx.strokeStyle='#2f6fb2'; ctx.lineWidth=2; ctx.beginPath();
+  ctx.strokeStyle='#14295E'; ctx.lineWidth=2; ctx.beginPath();
   ma.forEach((p,i)=>{ const X=px(p.x), Y=py(p.v); if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); });
   ctx.stroke();
   const ag=mtYearAgg(d,k).filter(a=>a.y>=mtY0&&a.y<=mtY1);
@@ -7288,7 +7296,7 @@ function mtChartFc(cv,ag,lin,sigma,k){
   ys.forEach((p,i)=>{ const X=px(p.y), Y=py(p.v-1.96*sigma); if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); });
   for(let i=ys.length-1;i>=0;i--) ctx.lineTo(px(ys[i].y),py(ys[i].v+1.96*sigma));
   ctx.closePath(); ctx.fill();
-  ctx.strokeStyle='#2f6fb2'; ctx.lineWidth=2; ctx.beginPath();
+  ctx.strokeStyle='#14295E'; ctx.lineWidth=2; ctx.beginPath();
   tail.forEach((p,i)=>{ const X=px(p.y), Y=py(p.v); if(i===0) ctx.moveTo(X,Y); else ctx.lineTo(X,Y); });
   ctx.stroke();
   ctx.strokeStyle='#c8372d'; ctx.setLineDash([5,4]); ctx.beginPath();
@@ -7334,8 +7342,8 @@ setTimeout(()=>{ try{
 })();
 
 };
-const ENC={saltV:"mQQarAbUTVgxzXG99DWtxA==",ivV:"3a+EqRxLYuMyN7Ug",wrapV:"B9VsPiWaETYq40ziOTepVbyrHUIf7Zpb+P1qXbfNz4nOFhoYL/Y569K4vU8iDueE",saltE:"h/HIeSPZd0VB3hzgJtlm3g==",ivE:"3Ko5pMuCbTH5BAf8",wrapE:"tw/8YCsQjjnBM3GtJrUja9Z/xXNMTF8XOoBR0Ls3ZvwCRjgz2WPP8YKJvxKfaLHm",ivD:"tHobXsPF67pdSgHt"};
-const BUILD="cd521280";
+const ENC={saltV:"K+H4QRK5JnWQyl/R4mYaSw==",ivV:"0evcnH5/oTMrsfZb",wrapV:"g4EteEXJQNZjkfPmG+iMtB+dBQj6Mce/i3uIneettZcKRtgrS4Wf1+V5dpax+jV7",saltE:"Azz0hbkygG84OinACU/ZJg==",ivE:"kkpC3Gq+19ek48Xs",wrapE:"mhTx5dDT1voJ02NAKvWXEIFvrPWTTcYEzc//QktI1k9VxOIIoEpEx9NpNB8ZPW4r",ivD:"m8xgm2ap8kWkFiuQ"};
+const BUILD="842e5463";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
