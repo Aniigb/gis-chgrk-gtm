@@ -522,6 +522,7 @@
         <button data-gs="sensors" title="Действующая измерительная база и контуры её развития: телеметрия, InSAR, БПЛА-ЦМР, ЭРТ, АМС">📡 Измерительная база</button>
         <button data-gs="data" title="Режим хранения, объёмы данных, аудит и интеграции">🗄 Данные·аудит·интеграции</button>
         <button data-gs="road" title="Этапы А/Б/В развития системы: доказательность данных → непрерывность → прогноз и интеграция">🗺 Дорожная карта<i class="bdg" id="gsBdgR" style="display:none"></i></button>
+        <button data-gs="sched" title="Рабочий график циклов замеров КИА: термометрия, пьезометрия, деформации — ближайшие циклы, напоминания, ссылки на журналы и памятку">📅 График замеров КИА<i class="bdg" id="gsBdgS" style="display:none"></i></button>
       </div>
     </div>
   </div>
@@ -718,7 +719,7 @@
         <button id="uplPick" style="border:1px solid var(--c-centr); background:var(--c-centr); color:#fff; border-radius:6px; padding:5px 12px; font-size:12px; cursor:pointer">Выбрать файл (xlsx / csv)…</button>
         <input type="file" id="uplFile" accept=".xlsx,.xls,.csv" style="display:none">
         <div class="note" style="margin-top:6px">📓 Заполняемый журнал ЧГРК (шифры скважин предзаполнены, раскладка под автозагрузку):
-          <a href="Журналы_КИА/Журнал_термометрии_2101_ККД.xlsx" download style="color:var(--c-centr)">⬇ Термометрия · 2101 ККД (подпорная стена)</a>
+          <a href="Журналы_КИА/Журнал_термометрии_2101_ККД.xlsx" target="_blank" style="color:var(--c-centr)">⬇ Термометрия · 2101 ККД (подпорная стена)</a>
         </div>
       </div>
       <div style="margin-top:8px; border-top:1px dashed var(--line); padding-top:8px">
@@ -734,7 +735,7 @@
       <button id="uplPiezoPick" style="margin-top:6px">Выбрать ведомость пьезометрии (xlsx)…</button>
       <input type="file" id="uplPiezoFile" accept=".xlsx,.xls" style="display:none">
       <div class="note" style="margin-top:6px">📓 Заполняемая ведомость ЧГРК:
-        <a href="Журналы_КИА/Журнал_пьезометрии_ЧГРК.xlsx" download style="color:var(--c-centr)">⬇ Пьезометрия (сводная ведомость уровней)</a>
+        <a href="Журналы_КИА/Журнал_пьезометрии_ЧГРК.xlsx" target="_blank" style="color:var(--c-centr)">⬇ Пьезометрия (сводная ведомость уровней)</a>
       </div>
     </div>
 
@@ -743,9 +744,9 @@
       <button id="uplGeodPick" style="margin-top:6px">Выбрать журнал деформаций…</button>
       <input type="file" id="uplGeodFile" accept=".xlsx,.xls,.csv,.pdf" style="display:none">
       <div class="note" style="margin-top:6px">📓 Заполняемые журналы ЧГРК (марки и исходные отметки предзаполнены, осадка считается формулой):
-        <a href="Журналы_КИА/Журнал_деформаций_2101_ККД.xlsx" download style="color:var(--c-centr)">⬇ 2101 ККД</a> ·
-        <a href="Журналы_КИА/Журнал_деформаций_2102_Галерея.xlsx" download style="color:var(--c-centr)">⬇ 2102 Галерея ККД–СКДР</a> ·
-        <a href="Журналы_КИА/Журнал_деформаций_2303_КЗК.xlsx" download style="color:var(--c-centr)">⬇ 2303 КЗК</a>
+        <a href="Журналы_КИА/Журнал_деформаций_2101_ККД.xlsx" target="_blank" style="color:var(--c-centr)">⬇ 2101 ККД</a> ·
+        <a href="Журналы_КИА/Журнал_деформаций_2102_Галерея.xlsx" target="_blank" style="color:var(--c-centr)">⬇ 2102 Галерея ККД–СКДР</a> ·
+        <a href="Журналы_КИА/Журнал_деформаций_2303_КЗК.xlsx" target="_blank" style="color:var(--c-centr)">⬇ 2303 КЗК</a>
       </div>
     </div>
 
@@ -771,14 +772,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=4e7e0420"></script>
-<script src="db_p2.js?v=4e7e0420"></script>
-<script src="db_p3.js?v=4e7e0420"></script>
-<script src="db_p4.js?v=4e7e0420"></script>
-<script src="db_p5.js?v=4e7e0420"></script>
-<script src="db_p6.js?v=4e7e0420"></script>
-<script src="db_p7.js?v=4e7e0420"></script>
-<script src="db_p8.js?v=4e7e0420"></script>
+<script src="db_p1.js?v=6dc8774e"></script>
+<script src="db_p2.js?v=6dc8774e"></script>
+<script src="db_p3.js?v=6dc8774e"></script>
+<script src="db_p4.js?v=6dc8774e"></script>
+<script src="db_p5.js?v=6dc8774e"></script>
+<script src="db_p6.js?v=6dc8774e"></script>
+<script src="db_p7.js?v=6dc8774e"></script>
+<script src="db_p8.js?v=6dc8774e"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -7475,6 +7476,9 @@ function gsBadges(added){
   if(bA){ bA.style.display=actN?'':'none'; bA.textContent=actN; bA.classList.toggle('alarm',critN>0); }
   const bR=document.getElementById('gsBdgR'); const pc=gsRoadPct();
   if(bR){ bR.style.display=pc?'':'none'; bR.textContent=pc+'%'; }
+  const bS=document.getElementById('gsBdgS'); // циклы замеров КИА в ближайшие 7 дней
+  if(bS){ const soon=KIA_SCHED.filter(sc=>{ const t=kiaNext(sc); return t&&Math.round((t-new Date())/864e5)<=7; }).length;
+    bS.style.display=soon?'':'none'; bS.textContent=soon; bS.classList.toggle('alarm',soon>0); }
   if(gsCur==='alerts'&&added>0) gsOpen('alerts',true);
 }
 function gsJournalSync(){
@@ -7839,8 +7843,56 @@ function gsViewRoad(){
     </div>`;
   }).join('')}`;
 }
+/* ---------- график циклов замеров КИА (рабочий проект — уточняется программой ГТМ и приказом) ---------- */
+const KIA_SCHED=[
+ {ic:'🌡', tp:'Термометрия', obj:'2101 ККД — подпорная стена', gts:'o2101', kind:'term', per:'ежемесячно', m:[1,2,3,4,5,6,7,8,9,10,11,12], d:15, jour:'Журналы_КИА/Журнал_термометрии_2101_ККД.xlsx'},
+ {ic:'💧', tp:'Пьезометрия', obj:'Водоём + пьезометры П-1…П-6', gts:'', kind:'ugv', per:'ежемесячно', m:[1,2,3,4,5,6,7,8,9,10,11,12], d:15, jour:'Журналы_КИА/Журнал_пьезометрии_ЧГРК.xlsx'},
+ {ic:'📐', tp:'Деформации', obj:'2101 ККД — 51 марка', gts:'o2101', kind:'geod', per:'ежеквартально', m:[3,6,9,12], d:20, jour:'Журналы_КИА/Журнал_деформаций_2101_ККД.xlsx'},
+ {ic:'📐', tp:'Деформации', obj:'2102 Галерея ККД–СКДР — 14 марок', gts:'o2102', kind:'geod', per:'ежеквартально', m:[3,6,9,12], d:20, jour:'Журналы_КИА/Журнал_деформаций_2102_Галерея.xlsx'},
+ {ic:'📐', tp:'Деформации', obj:'2303 КЗК — 14 марок', gts:'o2303', kind:'geod', per:'ежеквартально', m:[3,6,9,12], d:20, jour:'Журналы_КИА/Журнал_деформаций_2303_КЗК.xlsx'}
+];
+function kiaNext(sc, from){
+  const f=from?new Date(from):new Date(); f.setHours(0,0,0,0);
+  for(let add=0; add<400; add++){
+    const t=new Date(f.getFullYear(), f.getMonth(), f.getDate()+add);
+    if(sc.m.indexOf(t.getMonth()+1)>=0&&t.getDate()===sc.d) return t;
+  }
+  return null;
+}
+function kiaLast(sc){ // последняя дата замера в базе по виду наблюдений
+  let mx=''; const push=d=>{ if(d&&d>mx) mx=d; };
+  const o=sc.gts?DB.objects.find(x=>x.id===sc.gts):null;
+  if(sc.kind==='term'&&o&&o.prof) Object.values(o.prof).forEach(sr=>(sr.s||[]).forEach(r=>push(r[0])));
+  if(sc.kind==='geod'&&o&&o.geod) Object.values(o.geod).forEach(s=>s.forEach(r=>push(r[0])));
+  if(sc.kind==='ugv') DB.objects.forEach(x=>{ if(x.ugv) Object.values(x.ugv).forEach(s=>s.forEach(r=>push(r[0]))); });
+  return mx;
+}
+function gsViewSched(){
+  const today=new Date(); today.setHours(0,0,0,0);
+  const fmt=d=>d.toLocaleDateString('ru-RU');
+  const rows=KIA_SCHED.map(sc=>{
+    const nx=kiaNext(sc), dd=Math.round((nx-today)/864e5), last=kiaLast(sc);
+    const st=dd<=3?['#c8372d','срочно']:dd<=7?['#e08a00','на этой неделе']:['#2e7d32','по графику'];
+    const idx=sc.gts?DB.objects.findIndex(x=>x.id===sc.gts):-1;
+    return {sc,nx,dd,last,st,idx};
+  }).sort((a,b)=>a.nx-b.nx);
+  return `<h2>📅 График циклов замеров КИА</h2>
+  <div class="gsCard"><div class="mut">Рабочий график (проект): термометрия и пьезометрия — ежемесячно (15-е число), деформации — ежеквартально (20-е число последнего месяца квартала). Уточняется программой ГТМ и приказом главного инженера. Заполненные журналы передаются оператору в течение 3 рабочих дней после цикла — см. <a href="Журналы_КИА/Памятка_наблюдателя_КИА.pdf" target="_blank" style="color:var(--c-centr)">Памятку наблюдателя КИА</a>. Бейдж на кнопке раздела — число циклов в ближайшие 7 дней.</div></div>
+  ${rows.map(r=>`<div class="gsCard" style="border-left:4px solid ${r.st[0]}">
+    <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
+      <span style="font-size:16px">${r.sc.ic}</span>
+      <b style="font-size:12.5px">${r.sc.tp} · ${r.sc.obj}</b>
+      <span class="gsPill" style="background:${r.st[0]}; margin-left:auto">${r.st[1]}</span>
+    </div>
+    <div style="font-size:12px; margin-top:4px">Периодичность: <b>${r.sc.per}</b> · ближайший цикл: <b>${fmt(r.nx)}</b> (через ${r.dd} дн.) · последний замер в базе: <b>${r.last||'—'}</b></div>
+    <div style="margin-top:5px; display:flex; gap:14px; flex-wrap:wrap">
+      <a href="${r.sc.jour}" target="_blank" style="color:var(--c-centr); font-size:11.5px">⬇ журнал (форма Excel)</a>
+      ${r.idx>=0?`<a href="#" data-gsobj="${r.idx}" style="color:var(--c-centr); font-size:11.5px">→ карточка объекта</a>`:''}
+    </div>
+  </div>`).join('')}`;
+}
 /* --- диспетчер --- */
-const GS_VIEWS={alerts:gsViewAlerts, risk:gsViewRisk, prog:gsViewProg, sensors:gsViewSensors, data:gsViewData, road:gsViewRoad};
+const GS_VIEWS={alerts:gsViewAlerts, risk:gsViewRisk, prog:gsViewProg, sensors:gsViewSensors, data:gsViewData, road:gsViewRoad, sched:gsViewSched};
 function gsBindCommon(){
   const d=document.getElementById('gsModalBody');
   d.querySelectorAll('[data-gsobj]').forEach(el=>el.addEventListener('click',ev=>{ ev.preventDefault(); select(+el.dataset.gsobj); }));
@@ -7933,8 +7985,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"ejdA6+Os/sHL/FUHCW+b3w==",ivV:"2fxZQJGanTswyEBE",wrapV:"mT9/qA7pEq0znQm8q9Ituzji+0GhliyBRTJuOaBrphgsF/qBcksoq6gRnFNavbYw",saltE:"x6PMK0Y9gFvKgW6ZGjvm6A==",ivE:"xm7cQYpofckCnOWK",wrapE:"38oT0DtUi+pw4Mq7BZu/gEdQ4JDUNyfem8ygRhX5XIivPXrS6VAziylvzxZELMoV",ivD:"YR5tJvYfcZsyvC7S"};
-const BUILD="4e7e0420";
+const ENC={saltV:"DWBV7tHZCB17WINH7NWDwQ==",ivV:"uGbfgdjmTNFoCbFC",wrapV:"IfT1+Evi44e+77Mh+SBRYdR4clickuNTrDDLibU1L9QDfMCRtSscXVIYXvzNeqKl",saltE:"UqRZNMtaUYzvikAQRvmWYA==",ivE:"MR8HhymGXMTsEOE0",wrapE:"AbfCQ8eBu9tOTun1lYFgktKJDPvv+hsDAiDHQbSTWiujeIkKhq7KS5e4Qef0rw4s",ivD:"6pD/5WJ7ejSqVxjM"};
+const BUILD="6dc8774e";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
