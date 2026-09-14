@@ -694,6 +694,9 @@
     <button class="close" id="uplClose">✕</button>
     <h2>Загрузка данных мониторинга</h2>
     <div class="normref">Формы ведомостей и методика замеров — по СП 305.1325800.2017, ГОСТ 25358-2020 (термометрия грунтов) и ГОСТ 24846-2019 (геодезические наблюдения деформаций). Объект определяется автоматически по шифру или названию объекта в имени файла или в шапке ведомости («2104», «Автодорога № 12», «АБК», «Плотина 3301»…); файлы, не относящиеся к объектам реестра, отклоняются.</div>
+    <div class="note" style="margin-top:8px; padding:7px 10px; border:1px solid var(--c-centr); border-radius:6px; background:#eef1f7">📋 Для наблюдателей: правила заполнения, периодичность и порядок передачи журналов —
+      <a href="Журналы_КИА/Памятка_наблюдателя_КИА.pdf" target="_blank" style="color:var(--c-centr)"><b>Памятка наблюдателя КИА (PDF)</b></a>
+    </div>
 
     <div style="margin-top:10px; border-top:1px solid var(--c-centr); padding-top:10px">
       <b>🌡 Термометрия — журналы и ведомости температур (xlsx)</b> <span class="note">Цветные объектные ведомости и журналы температур: строка = скважина × дата, глубины по столбцам; выгрузки АСДК: глубины со знаком «минус». Раскладка распознаётся автоматически и запоминается; недостающая t наружного воздуха догружается из метеоархива на дату замера.</span><br>
@@ -768,14 +771,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=a9615bb2"></script>
-<script src="db_p2.js?v=a9615bb2"></script>
-<script src="db_p3.js?v=a9615bb2"></script>
-<script src="db_p4.js?v=a9615bb2"></script>
-<script src="db_p5.js?v=a9615bb2"></script>
-<script src="db_p6.js?v=a9615bb2"></script>
-<script src="db_p7.js?v=a9615bb2"></script>
-<script src="db_p8.js?v=a9615bb2"></script>
+<script src="db_p1.js?v=c69d33e1"></script>
+<script src="db_p2.js?v=c69d33e1"></script>
+<script src="db_p3.js?v=c69d33e1"></script>
+<script src="db_p4.js?v=c69d33e1"></script>
+<script src="db_p5.js?v=c69d33e1"></script>
+<script src="db_p6.js?v=c69d33e1"></script>
+<script src="db_p7.js?v=c69d33e1"></script>
+<script src="db_p8.js?v=c69d33e1"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -7922,8 +7925,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"swnHansPnbDwaHEeyxc32g==",ivV:"51d6/KQ95eeySbCC",wrapV:"x6rd2zRsppFQQsd0bcJ7NgUvyYVz28g49UijdEZDRDnlEM0VMQ1BROibfZxB4s6H",saltE:"GljfvkhDzSEcL9achxLLug==",ivE:"VGIFRCSZ7rVBT1FN",wrapE:"pQZhUo4zPcwBf2psZcPkAyvM7HCbNDQ3xyHK5ow2uuaXXm2oEfvPvpQfWwE4e5Ez",ivD:"gY+QD9g+Y0o0wrom"};
-const BUILD="a9615bb2";
+const ENC={saltV:"lSqZtPvfSzCOBa5S8L7S+A==",ivV:"M3ZT5RRsYahzEmuo",wrapV:"Gaqo3T2TADOY2L98V8wbHfMCo+iG1An0LtxZ3fUB35s9X3ODUctyD6pAhgZmG8Uw",saltE:"nAT69592Ca0jPRqSCtunOA==",ivE:"xP+V/UPKgqYxuQkT",wrapE:"leHlJ7L7uqCRVZJsrfXP1AjT9CoPv/qLw08S6z30ihxkA5ALkOP/BHKTBVlG1UpO",ivD:"KoE5S1PUIjZ/kh5e"};
+const BUILD="c69d33e1";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
