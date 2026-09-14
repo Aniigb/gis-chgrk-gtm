@@ -772,14 +772,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=6dc8774e"></script>
-<script src="db_p2.js?v=6dc8774e"></script>
-<script src="db_p3.js?v=6dc8774e"></script>
-<script src="db_p4.js?v=6dc8774e"></script>
-<script src="db_p5.js?v=6dc8774e"></script>
-<script src="db_p6.js?v=6dc8774e"></script>
-<script src="db_p7.js?v=6dc8774e"></script>
-<script src="db_p8.js?v=6dc8774e"></script>
+<script src="db_p1.js?v=380108c6"></script>
+<script src="db_p2.js?v=380108c6"></script>
+<script src="db_p3.js?v=380108c6"></script>
+<script src="db_p4.js?v=380108c6"></script>
+<script src="db_p5.js?v=380108c6"></script>
+<script src="db_p6.js?v=380108c6"></script>
+<script src="db_p7.js?v=380108c6"></script>
+<script src="db_p8.js?v=380108c6"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -7400,11 +7400,12 @@ setTimeout(()=>{ try{
    матрица рисков 5×5, прогноз состояния ММГ, измерительная база,
    данные/аудит/интеграции, дорожная карта. Хранение — localStorage рабочего
    места (префикс chgrk_gs_*) + серверный журнал при подключённой центральной БД. */
-const GS_STORE={j:'chgrk_gs_journal_v1', snap:'chgrk_gs_snap_v1', road:'chgrk_gs_road_v1', sens:'chgrk_gs_sensors_v1', out:'chgrk_gs_outbox_v1', ntf:'chgrk_gs_notify_v1', duty:'chgrk_gs_duty_v1'};
+const GS_STORE={j:'chgrk_gs_journal_v1', snap:'chgrk_gs_snap_v1', road:'chgrk_gs_road_v1', sens:'chgrk_gs_sensors_v1', out:'chgrk_gs_outbox_v1', ntf:'chgrk_gs_notify_v1', duty:'chgrk_gs_duty_v1', sched:'chgrk_gs_sched_v1', done:'chgrk_gs_done_v1'};
 function gsLoad(k,dflt){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?dflt:v; }catch(e){ return dflt; } }
 function gsSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 let gsJournal=gsLoad(GS_STORE.j,[]), gsRoad=gsLoad(GS_STORE.road,{}), gsSens=gsLoad(GS_STORE.sens,{}), gsCur=null, gsRemote=false;
 let gsNotify=gsLoad(GS_STORE.ntf,[]), gsDuty=gsLoad(GS_STORE.duty,{name:'',phone:'',tg:'',mail:''});
+let gsSchedCfg=gsLoad(GS_STORE.sched,{}), kiaDone=gsLoad(GS_STORE.done,[]);
 const GS_ROAD=[
  {g:'Этап А · 0–3 мес — доказательность данных', items:[
    {k:'A1', t:'Журнал тревог и эскалации переходов через контрольные критерии К1/К2 (локальный + серверный журнал — Центр управления ГТМ)', d0:'готово'},
@@ -7476,8 +7477,9 @@ function gsBadges(added){
   if(bA){ bA.style.display=actN?'':'none'; bA.textContent=actN; bA.classList.toggle('alarm',critN>0); }
   const bR=document.getElementById('gsBdgR'); const pc=gsRoadPct();
   if(bR){ bR.style.display=pc?'':'none'; bR.textContent=pc+'%'; }
-  const bS=document.getElementById('gsBdgS'); // циклы замеров КИА в ближайшие 7 дней
-  if(bS){ const soon=KIA_SCHED.filter(sc=>{ const t=kiaNext(sc); return t&&Math.round((t-new Date())/864e5)<=7; }).length;
+  const bS=document.getElementById('gsBdgS'); // невыполненные циклы замеров КИА в ближайшие 7 дней
+  if(bS){ const t0=new Date(); t0.setHours(0,0,0,0);
+    const soon=kiaSchedEff().map((sc,i)=>({i,t:kiaNext(sc)})).filter(r=>Math.round((r.t-t0)/864e5)<=7&&!kiaIsDone(r.i,kiaISO(r.t))).length;
     bS.style.display=soon?'':'none'; bS.textContent=soon; bS.classList.toggle('alarm',soon>0); }
   if(gsCur==='alerts'&&added>0) gsOpen('alerts',true);
 }
@@ -7867,29 +7869,45 @@ function kiaLast(sc){ // последняя дата замера в базе п
   if(sc.kind==='ugv') DB.objects.forEach(x=>{ if(x.ugv) Object.values(x.ugv).forEach(s=>s.forEach(r=>push(r[0]))); });
   return mx;
 }
+/* --- редактируемый график (роль «оператор») и журнал выполненных циклов --- */
+function kiaSchedEff(){ return KIA_SCHED.map((sc,i)=>Object.assign({},sc,gsSchedCfg[i]||{})); }
+function kiaISO(d){ return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0'); }
+function kiaIsDone(i, iso){ return kiaDone.some(r=>r.i===i&&r.cycle===iso); }
 function gsViewSched(){
   const today=new Date(); today.setHours(0,0,0,0);
+  const canEdit=document.body.classList.contains('role-edit');
   const fmt=d=>d.toLocaleDateString('ru-RU');
-  const rows=KIA_SCHED.map(sc=>{
-    const nx=kiaNext(sc), dd=Math.round((nx-today)/864e5), last=kiaLast(sc);
-    const st=dd<=3?['#c8372d','срочно']:dd<=7?['#e08a00','на этой неделе']:['#2e7d32','по графику'];
+  const eff=kiaSchedEff();
+  const rows=eff.map((sc,i)=>{
+    const nx=kiaNext(sc), iso=kiaISO(nx), dd=Math.round((nx-today)/864e5), last=kiaLast(sc), done=kiaIsDone(i,iso);
+    const st=done?['#5b7ec4','выполнен']:dd<=3?['#c8372d','срочно']:dd<=7?['#e08a00','на этой неделе']:['#2e7d32','по графику'];
     const idx=sc.gts?DB.objects.findIndex(x=>x.id===sc.gts):-1;
-    return {sc,nx,dd,last,st,idx};
+    return {sc,i,nx,iso,dd,last,done,st,idx};
   }).sort((a,b)=>a.nx-b.nx);
+  const hist=kiaDone.slice(-8).reverse();
   return `<h2>📅 График циклов замеров КИА</h2>
-  <div class="gsCard"><div class="mut">Рабочий график (проект): термометрия и пьезометрия — ежемесячно (15-е число), деформации — ежеквартально (20-е число последнего месяца квартала). Уточняется программой ГТМ и приказом главного инженера. Заполненные журналы передаются оператору в течение 3 рабочих дней после цикла — см. <a href="Журналы_КИА/Памятка_наблюдателя_КИА.pdf" target="_blank" style="color:var(--c-centr)">Памятку наблюдателя КИА</a>. Бейдж на кнопке раздела — число циклов в ближайшие 7 дней.</div></div>
+  <div class="gsCard"><div class="mut">Рабочий график (проект): термометрия и пьезометрия — ежемесячно (15-е число), деформации — ежеквартально (20-е число последнего месяца квартала). Уточняется программой ГТМ и приказом главного инженера.${canEdit?' Роль «оператор»: настройка графика (⚙) и отметка выполнения цикла доступны; изменения сохраняются локально в этом браузере.':''} Заполненные журналы передаются оператору в течение 3 рабочих дней после цикла — см. <a href="Журналы_КИА/Памятка_наблюдателя_КИА.pdf" target="_blank" style="color:var(--c-centr)">Памятку наблюдателя КИА</a>. Бейдж на кнопке раздела — число невыполненных циклов в ближайшие 7 дней.</div></div>
   ${rows.map(r=>`<div class="gsCard" style="border-left:4px solid ${r.st[0]}">
     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
       <span style="font-size:16px">${r.sc.ic}</span>
       <b style="font-size:12.5px">${r.sc.tp} · ${r.sc.obj}</b>
       <span class="gsPill" style="background:${r.st[0]}; margin-left:auto">${r.st[1]}</span>
+      ${canEdit?`<button data-stgl="${r.i}" title="Настроить периодичность и день цикла" style="border:1px solid var(--line); background:#fff; border-radius:6px; cursor:pointer; font-size:11px; padding:2px 7px">⚙</button>`:''}
     </div>
-    <div style="font-size:12px; margin-top:4px">Периодичность: <b>${r.sc.per}</b> · ближайший цикл: <b>${fmt(r.nx)}</b> (через ${r.dd} дн.) · последний замер в базе: <b>${r.last||'—'}</b></div>
-    <div style="margin-top:5px; display:flex; gap:14px; flex-wrap:wrap">
+    <div style="font-size:12px; margin-top:4px">Периодичность: <b>${r.sc.per}</b>, ${r.sc.d}-е число · ближайший цикл: <b>${fmt(r.nx)}</b> (через ${r.dd} дн.) · последний замер в базе: <b>${r.last||'—'}</b></div>
+    <div style="margin-top:5px; display:flex; gap:14px; flex-wrap:wrap; align-items:center">
       <a href="${r.sc.jour}" target="_blank" style="color:var(--c-centr); font-size:11.5px">⬇ журнал (форма Excel)</a>
       ${r.idx>=0?`<a href="#" data-gsobj="${r.idx}" style="color:var(--c-centr); font-size:11.5px">→ карточка объекта</a>`:''}
+      ${canEdit&&!r.done?`<button data-sdone="${r.i}" style="border:1px solid #2e7d32; background:#2e7d32; color:#fff; border-radius:6px; cursor:pointer; font-size:11px; padding:3px 10px">✔ цикл выполнен</button>`:''}
     </div>
-  </div>`).join('')}`;
+    ${canEdit?`<div data-sed="${r.i}" style="display:none; margin-top:6px; padding-top:6px; border-top:1px dashed var(--line); font-size:11.5px">
+      Периодичность: <select data-sfper style="font-size:11.5px"><option value="m" ${r.sc.m.length===12?'selected':''}>ежемесячно</option><option value="q" ${r.sc.m.length===4?'selected':''}>ежеквартально</option></select>
+      · день месяца: <input data-sfd type="number" min="1" max="28" value="${r.sc.d}" style="width:52px; font-size:11.5px">
+      <button data-ssave="${r.i}" style="border:1px solid var(--c-centr); background:var(--c-centr); color:#fff; border-radius:6px; cursor:pointer; font-size:11px; padding:2px 9px; margin-left:8px">Сохранить</button>
+      <span class="mut">(день 1–28)</span>
+    </div>`:''}
+  </div>`).join('')}
+  ${hist.length?`<div class="gsCard"><h3>Журнал выполненных циклов</h3>${hist.map(h=>`<div style="border-top:1px dashed var(--line); padding:4px 0; font-size:11.5px">✔ <b>${esc(h.tp)} · ${esc(h.obj)}</b> — цикл ${h.cycle.split('-').reverse().join('.')}; отмечено ${new Date(h.ts).toLocaleString('ru-RU')}</div>`).join('')}</div>`:''}`;
 }
 /* --- диспетчер --- */
 const GS_VIEWS={alerts:gsViewAlerts, risk:gsViewRisk, prog:gsViewProg, sensors:gsViewSensors, data:gsViewData, road:gsViewRoad, sched:gsViewSched};
@@ -7898,6 +7916,20 @@ function gsBindCommon(){
   d.querySelectorAll('[data-gsobj]').forEach(el=>el.addEventListener('click',ev=>{ ev.preventDefault(); select(+el.dataset.gsobj); }));
   d.querySelectorAll('select.gsSt[data-gsk]').forEach(el=>el.addEventListener('change',()=>{ gsSens[el.dataset.gsk]=el.value; gsSave(GS_STORE.sens,gsSens); }));
   d.querySelectorAll('select.gsSt[data-grk]').forEach(el=>el.addEventListener('change',()=>{ gsRoad[el.dataset.grk]=el.value; gsSave(GS_STORE.road,gsRoad); gsBadges(0); gsOpen('road',true); }));
+  d.querySelectorAll('[data-stgl]').forEach(el=>el.addEventListener('click',()=>{ const f=d.querySelector('[data-sed="'+el.dataset.stgl+'"]'); if(f) f.style.display=(f.style.display==='none'||!f.style.display)?'':'none'; }));
+  d.querySelectorAll('[data-ssave]').forEach(el=>el.addEventListener('click',()=>{
+    const card=el.closest('.gsCard'), per=card.querySelector('[data-sfper]').value, day=+card.querySelector('[data-sfd]').value;
+    if(!(day>=1&&day<=28)){ alert('День цикла — от 1 до 28.'); return; }
+    gsSchedCfg[+el.dataset.ssave]={m:per==='q'?[3,6,9,12]:[1,2,3,4,5,6,7,8,9,10,11,12], d:day, per:per==='q'?'ежеквартально':'ежемесячно'};
+    gsSave(GS_STORE.sched,gsSchedCfg); gsBadges(0); gsOpen('sched',true);
+  }));
+  d.querySelectorAll('[data-sdone]').forEach(el=>el.addEventListener('click',()=>{
+    const i=+el.dataset.sdone, sc=kiaSchedEff()[i], t=kiaNext(sc), iso=kiaISO(t);
+    if(kiaIsDone(i,iso)) return;
+    kiaDone.push({i, tp:sc.tp, obj:sc.obj, cycle:iso, ts:new Date().toISOString()});
+    if(kiaDone.length>200) kiaDone=kiaDone.slice(-200);
+    gsSave(GS_STORE.done,kiaDone); gsBadges(0); gsOpen('sched',true);
+  }));
   const dE=document.getElementById('gsDutyEdit'); if(dE) dE.onclick=()=>{ const f=document.getElementById('gsDutyForm'); if(f) f.style.display=(f.style.display==='none'||!f.style.display)?'':'none'; };
   const dS=document.getElementById('gsDutySave'); if(dS) dS.onclick=()=>{ gsDuty={name:document.getElementById('gsDutyName').value.trim(), phone:document.getElementById('gsDutyPhone').value.trim(), tg:document.getElementById('gsDutyTg').value.trim().replace(/^@/,''), mail:document.getElementById('gsDutyMail').value.trim()}; gsSave(GS_STORE.duty,gsDuty); gsOpen('alerts',true); };
   d.querySelectorAll('[data-gsack]').forEach(el=>el.addEventListener('click',()=>gsAckNtf(el.dataset.gsack)));
@@ -7985,8 +8017,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"DWBV7tHZCB17WINH7NWDwQ==",ivV:"uGbfgdjmTNFoCbFC",wrapV:"IfT1+Evi44e+77Mh+SBRYdR4clickuNTrDDLibU1L9QDfMCRtSscXVIYXvzNeqKl",saltE:"UqRZNMtaUYzvikAQRvmWYA==",ivE:"MR8HhymGXMTsEOE0",wrapE:"AbfCQ8eBu9tOTun1lYFgktKJDPvv+hsDAiDHQbSTWiujeIkKhq7KS5e4Qef0rw4s",ivD:"6pD/5WJ7ejSqVxjM"};
-const BUILD="6dc8774e";
+const ENC={saltV:"x5kybhK36IIzav30hgNeQw==",ivV:"03W4DcJYRZdoVIg8",wrapV:"kpBbcwhBp0AvT1BFM8tcocl0Nr3ce+9YSsPUi7BWVsIMFQzdFo3IOSkyaqxBgvQC",saltE:"5Hlle9Q6DiOnIesvJZjauA==",ivE:"FcCL04q1bChFdGq5",wrapE:"yUTMNX5x/O94Wr1C7nQuoHv3NGS3sllFircR63uJ4inpjslsVln6AWp0mUTwxpCi",ivD:"UMD1ddqlPh3fgKSE"};
+const BUILD="380108c6";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
