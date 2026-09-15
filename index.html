@@ -773,14 +773,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=f0a428fc"></script>
-<script src="db_p2.js?v=f0a428fc"></script>
-<script src="db_p3.js?v=f0a428fc"></script>
-<script src="db_p4.js?v=f0a428fc"></script>
-<script src="db_p5.js?v=f0a428fc"></script>
-<script src="db_p6.js?v=f0a428fc"></script>
-<script src="db_p7.js?v=f0a428fc"></script>
-<script src="db_p8.js?v=f0a428fc"></script>
+<script src="db_p1.js?v=563c33fc"></script>
+<script src="db_p2.js?v=563c33fc"></script>
+<script src="db_p3.js?v=563c33fc"></script>
+<script src="db_p4.js?v=563c33fc"></script>
+<script src="db_p5.js?v=563c33fc"></script>
+<script src="db_p6.js?v=563c33fc"></script>
+<script src="db_p7.js?v=563c33fc"></script>
+<script src="db_p8.js?v=563c33fc"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -2941,6 +2941,7 @@ function tabCalcGts(o, el){ // вкладка «Расчёты» карточк�
   <div class="note">Приток (м³/сут) = сток (мм) × водосбор (км²) × 1 000. Суточный сток вычисляется с коэффициентом стока k = 0,9 / 0,6 / 0,4 по температуре грунта 0–7 см (мёрзлый / переходный / протаявший) плюс степень-часовое снеготаяние — оперативные значения на 10 суток вперёд по текущему прогнозу считаются автоматически в окне дежурного метеоконтроля (полоса над картой). Источник рельефа: Copernicus DEM GLO-30 (открытые данные ESA, ячейка ~31×22 м) — скрининговый уровень; не заменяет расчёт максимального стока по СП 33.101-2003 и проектные решения по водоотводу от зданий и сооружений (СП 25.13330.2020 — защита оснований на ММГ от увлажнения). Метод модели: заполнение понижений priority-flood → направление стока D8 → аккумуляция; карты и сводная оценка — Центр контроля ГТМ → «🌊 Модель стока».${o.p&&/условн|уточня/i.test(o.p)?' Геопозиция объекта условная (по центроиду/метке площадки) — оценка уровня площадки, уточняется по генплану.':''}</div>
   <div class="noprint" style="display:flex; gap:8px; flex-wrap:wrap; margin-top:8px">
     <button class="wbtn" id="calcGoStok">→ Модель стока (Центр контроля)</button>
+    <button class="wbtn" id="calcGoStokMap">⌖ Показать водосбор на карте</button>
   </div>`:`<div class="note">Данные модели стока (stok_data.js) не загружены.</div>`;
 
   const blk=(icon,title,sum,body)=>`<details class="igt" style="margin:6px 0" open><summary style="font-size:13px"><b>${icon} ${title}</b>${sum?` <span style="color:var(--mut);font-weight:400;font-size:12px">— ${sum}</span>`:''}</summary><div style="padding:6px 10px 10px">${body}</div></details>`;
@@ -2960,6 +2961,13 @@ function tabCalcGts(o, el){ // вкладка «Расчёты» карточк�
   const b1=el.querySelector('#calcGoClim'); if(b1) b1.onclick=()=>{curTab='climate'; renderDetail(o);};
   const b2=el.querySelector('#calcGoTherm'); if(b2) b2.onclick=()=>{curTab='geoterm'; renderDetail(o);};
   const b3=el.querySelector('#calcGoStok'); if(b3) b3.onclick=()=>gsOpen('stok');
+  const b4=el.querySelector('#calcGoStokMap'); if(b4) b4.onclick=()=>{
+    const i=DB.objects.indexOf(o);
+    if(typeof gsCloseModal==='function') gsCloseModal();
+    if(i>=0) select(i);
+    if(window.map&&typeof runoffGroup!=='undefined'&&!map.hasLayer(runoffGroup)){ runoffGroup.addTo(map); if(typeof runoffNote==='function') runoffNote(true); }
+    if(o.lat!=null&&window.map) map.setView([o.lat,o.lon],Math.max(map.getZoom(),14));
+  };
   const host=el.querySelector('#calcToolsHost');
   if(host&&typeof tabCalc==='function'){ try{ tabCalc(o, host); }catch(e){ host.innerHTML='<div class="note">Калькуляторы недоступны: '+esc(e&&e.message||e)+'</div>'; } }
 }
@@ -4604,6 +4612,17 @@ function repAssessTable(o, tasks){
     h+=`<h3 style="font-size:12.5px">Выводы и рекомендуемые мероприятия</h3>
     <p>${rs?('Сработавшие превентивные правила: '+esc(rs)+'.'):'Превентивные пороги не нарушены.'}</p>
     <p>${esc(conclText(a,sd))}</p>`;
+  }
+  const hstR=(window.STOK&&STOK.objects.find(s=>s.id===o.id))||null;
+  if(hstR){
+    const rcT={'низкий':'низкий','средний':'средний','высокий':'ВЫСОКИЙ'};
+    h+=`<h3 style="font-size:12.5px">Гидрологическая оценка (поверхностный сток по ЦМР Copernicus GLO-30, скрининг)</h3>
+    <table>
+      <tr><td>Водосбор к объекту (радиус 500 м)</td><td><b>${hstR.catch_near_km2} км²</b></td><td>Расстояние до расчётного русла</td><td>${hstR.dist_stream_m} м</td></tr>
+      <tr><td>Отметка точки по ЦМР</td><td>${hstR.elev!==null?hstR.elev+' м':'—'}</td><td>Уклоны в буфере 300 м (средний / максимум)</td><td>${hstR.slope_mean}° / ${hstR.slope_max}°</td></tr>
+      <tr><td>Замкнутые понижения (застойные зоны)</td><td>${hstR.depr_pct}% площади буфера</td><td>Скрининговый риск поверхностного стока</td><td><b>${rcT[hstR.risk]||hstR.risk}</b></td></tr>
+    </table>
+    <p style="font-size:11.5px">Сценарии притока к объекту (суточный сток × водосбор × 1 000, м³/сут): 5 мм — ${Math.round(5*hstR.catch_near_km2*1000)}; 15 мм — ${Math.round(15*hstR.catch_near_km2*1000)}; 30 мм (опасное явление) — ${Math.round(30*hstR.catch_near_km2*1000)}; 50 мм — ${Math.round(50*hstR.catch_near_km2*1000)}. Оценка скрининговая — не заменяет расчёт максимального стока по СП 33.101-2003 и проектные решения по водоотводу (СП 25.13330.2020 — защита оснований на ММГ от увлажнения).${o.p&&/условн|уточня/i.test(o.p)?' Геопозиция объекта условная — оценка уровня площадки.':''}</p>`;
   }
   const calcApp=(JSON.parse(sessionStorage.getItem('gtm_calcapp')||'[]')).filter(x=>x.addr===o.a);
   if(calcApp.length){
@@ -8225,8 +8244,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"s7lkn/JPR7CbvnK/IQyTTg==",ivV:"4OIAgOmj3Zv2PlH+",wrapV:"59qBvbMYj+z5XL84BFkeFfaRhLV3NVEzRTInY2kP1wG40mr7SYIDkFL3aMjZHvCr",saltE:"ncLGjsIubCgWEHLK1+q13Q==",ivE:"PyBY8pxSZqg2y3Oy",wrapE:"x4uRdn4Uijxe0qrD4Zw3RejU9/fwWNmE4zRKvlVDt1Z+gByGyet+85BVKs2HIcYa",ivD:"2NSNQKDapsf/yvBs"};
-const BUILD="f0a428fc";
+const ENC={saltV:"A9mfR1bwNIAweJsTzgKNNQ==",ivV:"LvOPBGOEAxYBIv6b",wrapV:"EgGDEJuoDLDB+z4ixpm5mUux4aXnNO52zAJ7VMJMrqI8NQjd2ehVpoRTLNqp00kT",saltE:"74bcEmgbJPJqfBs5B7b7tg==",ivE:"5NEXcuNG/Vq14+5h",wrapE:"u0fR6UCYQZfXa3A4sCCk7Q2TOJYnuyuD3anAkG70aTou+Oore0dga+dGvtiYnYCw",ivD:"ETC7BI3qoX8TXrS5"};
+const BUILD="563c33fc";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
