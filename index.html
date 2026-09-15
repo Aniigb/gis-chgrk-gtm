@@ -773,18 +773,19 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=511650fa"></script>
-<script src="db_p2.js?v=511650fa"></script>
-<script src="db_p3.js?v=511650fa"></script>
-<script src="db_p4.js?v=511650fa"></script>
-<script src="db_p5.js?v=511650fa"></script>
-<script src="db_p6.js?v=511650fa"></script>
-<script src="db_p7.js?v=511650fa"></script>
-<script src="db_p8.js?v=511650fa"></script>
+<script src="db_p1.js?v=f0a428fc"></script>
+<script src="db_p2.js?v=f0a428fc"></script>
+<script src="db_p3.js?v=f0a428fc"></script>
+<script src="db_p4.js?v=f0a428fc"></script>
+<script src="db_p5.js?v=f0a428fc"></script>
+<script src="db_p6.js?v=f0a428fc"></script>
+<script src="db_p7.js?v=f0a428fc"></script>
+<script src="db_p8.js?v=f0a428fc"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
 <script src="stok_data.js?v=20260915a"></script>
+<script src="streams.js?v=20260915a"></script>
 
 <div id="loginModal">
   <form class="lbox" id="loginForm">
@@ -1204,9 +1205,19 @@ if(window.GEO_LAYERS){
   if(GEO_LAYERS.opp) geoOverlays[GEO_LAYERS.opp.name].addTo(map); // ортофотоплан 2023 — включён по умолчанию
 }
 const hydroGroup=L.layerGroup(), thermGroup=L.layerGroup(), hydroOgGroup=L.layerGroup(), fpGroup=L.layerGroup(), runoffGroup=L.layerGroup(), kadGroup=L.layerGroup(), igiWellsGroup=L.featureGroup();
-L.control.layers({'Спутник (Esri)':satTiles,'Карта (OSM)':osmTiles},Object.assign(geoOverlays,{'🌡 Тепловая карта грунтов':thermGroup,'🌊 Поверхностный сток по ЦМР (по объектам) · в разработке':runoffGroup,'🗺 Кадастровые границы ЗУ (НСПД/ЕГРН)':kadGroup,'🕳 Скважины и КИА (местные СК → WGS-84)':igiWellsGroup}),{position:'topright'}).addTo(map);
+L.control.layers({'Спутник (Esri)':satTiles,'Карта (OSM)':osmTiles},Object.assign(geoOverlays,{'🌡 Тепловая карта грунтов':thermGroup,'🌊 Расчётная гидросеть (модель стока, ЦМР)':runoffGroup,'🗺 Кадастровые границы ЗУ (НСПД/ЕГРН)':kadGroup,'🕳 Скважины и КИА (местные СК → WGS-84)':igiWellsGroup}),{position:'topright'}).addTo(map);
 map.on('overlayadd',e=>{ if(e.layer===thermGroup) thermToggle(true); if(e.layer===runoffGroup) runoffNote(true); if(e.layer===igiWellsGroup) igiWellsLayer(true); });
 map.on('overlayremove',e=>{ if(e.layer===thermGroup) thermToggle(false); if(e.layer===runoffGroup) runoffNote(false); });
+/* ---------- слой расчётной гидросети (модель поверхностного стока по ЦМР GLO-30) ---------- */
+if(window.STREAMS&&STREAMS.features){
+  const stCol=a=>a>=10?'#0057c2':(a>=3?'#2f7fc4':'#7fb3d9');
+  L.geoJSON(STREAMS,{
+    style:f=>{ const a=(f.properties&&f.properties.acc_km2)||1;
+      return {color:stCol(a), weight:1.4+Math.min(3.2,Math.max(0,Math.log10(a*1000)-3)*1.6), opacity:.92}; },
+    onEachFeature:(f,ly)=>{ const a=(f.properties&&f.properties.acc_km2)||0;
+      ly.bindPopup('🌊 <b>Расчётный водоток</b> · водосбор ≈ <b>'+(a>=10?a.toFixed(0):a.toFixed(1))+' км²</b><br><span style="font-size:11px;color:#8a93a3">Модель поверхностного стока по ЦМР Copernicus GLO-30 — скрининг природной организации стока, не гидравлика сооружений водоотвода. Карты и оценка по объектам: Центр контроля ГТМ → «🌊 Модель стока».</span>'); }
+  }).addTo(runoffGroup);
+}
 
 /* ---------- слой термоскважин ИГИ: строится по параметрам перехода местных СК (skTrans) ---------- */
 function igiWellsLayer(notify){
@@ -1345,7 +1356,7 @@ function runoffNote(on){
       runoffNoteEl=document.createElement('div');
       runoffNoteEl.id='runoffNote';
       runoffNoteEl.style.cssText='position:absolute; left:50%; bottom:18px; transform:translateX(-50%); z-index:650; background:rgba(24,28,32,.92); color:#f2e9d8; border:1px solid #8a7d5a; border-radius:8px; padding:9px 16px; font-size:12.5px; line-height:1.45; max-width:80%; text-align:center; pointer-events:none; box-shadow:0 2px 12px rgba(0,0,0,.45)';
-      runoffNoteEl.innerHTML='🌊 <b>Поверхностный сток по ЦМР — слой в разработке.</b><br>Стоки будут построены по цифровой модели рельефа (модель направления стока D8) в границах площадки Черногорского ГОК — по результатам этапа гидрологического моделирования.';
+      runoffNoteEl.innerHTML='🌊 <b>Расчётная гидросеть по ЦМР Copernicus GLO-30.</b><br>Водотоки от водосбора ~1 км²; цвет и толщина — по площади водосбора. Скрининг природной организации стока — не гидравлика сооружений водоотвода. Оценка по объектам: Центр контроля ГТМ → «🌊 Модель стока».';
       document.getElementById('map').appendChild(runoffNoteEl);
     }
     runoffNoteEl.style.display='block';
@@ -5062,6 +5073,109 @@ function procHtml(d){
   h+='</div>';
   return h;
 }
+/* --- ливневый приток к объектам (водный баланс прогноза × водосборы модели стока ЦМР) --- */
+function stokInflowScan(d){
+  const res=[];
+  (d.pts||[]).forEach((pt,pi)=>{
+    const meta=W_PTS[pi]; if(!meta||!pt||!pt.hourly) return;
+    const H=pt.hourly; if(!H.time) return;
+    const days={}, order=[];
+    for(let i=0;i<H.time.length;i++){
+      const t=+H.temperature_2m[i]; if(isNaN(t)) continue;
+      const key=H.time[i].slice(0,10);
+      let a=days[key]; if(!a){ a=days[key]={date:key,rain:0,dh:0,depth:0,soil:0,soilN:0}; order.push(key); }
+      a.rain+=H.rain?(+H.rain[i]||0):0;
+      if(t>0)a.dh+=t;
+      const dep=H.snow_depth?+H.snow_depth[i]:NaN; if(!isNaN(dep)) a.depth=dep*100;
+      const st2=H.soil_temperature_0_to_7cm?+H.soil_temperature_0_to_7cm[i]:NaN;
+      if(!isNaN(st2)){ a.soil+=st2; a.soilN++; }
+    }
+    const arr=order.map(key=>{
+      const a=days[key];
+      const soil=a.soilN?a.soil/a.soilN:null;
+      const melt=(a.depth>0&&a.dh>0)?Math.min(a.dh*0.35,a.depth*3):0;
+      const k=soil==null?0.6:(soil<=-0.5?0.9:(soil<=2?0.6:0.4));
+      let runoff=(a.rain+melt)*k; if(a.rain>0&&a.depth>0) runoff*=1.15;
+      return {date:key, rain:a.rain, melt, k, runoff};
+    });
+    res.push({pi, nm:meta.nm, lat:meta.lat, lon:meta.lon, days:arr});
+  });
+  return res;
+}
+function stokInflowHtml(d){
+  const S=window.STOK; if(!S||!S.objects) return '';
+  const scan=stokInflowScan(d); if(!scan.length) return '';
+  const STM={}; S.objects.forEach(s=>STM[s.id]=s);
+  const hav=(la1,lo1,la2,lo2)=>{const r=Math.PI/180,dx=(lo2-lo1)*Math.cos(r*(la1+la2)/2),dy=la2-la1;return Math.hypot(dx,dy);};
+  const rc={'низкий':'#2e7d32','средний':'#ef9a1a','высокий':'#c62828'};
+  let h='<div style="margin-top:10px; border-top:2px solid var(--line); padding-top:8px"><b style="font-size:13px">🌊 Ливневый приток к объектам на 10 суток</b> <span class="note">— суточный сток (дождь + снеготаяние, k по t грунта) × водосбор из модели ЦМР (раздел «🌊 Модель стока» Центра контроля); 1 мм стока с 1 км² = 1 000 м³. Водосборы объектов могут частично перекрываться — объёмы не суммируются между объектами</span>';
+  scan.forEach(pt=>{
+    const objs=DB.objects.map(o=>{
+      const st=STM[o.id]; if(!st||typeof o.lat!=='number') return null;
+      const dHere=hav(o.lat,o.lon,pt.lat,pt.lon);
+      const dAll=scan.map(q=>hav(o.lat,o.lon,q.lat,q.lon));
+      if(dHere!==Math.min.apply(null,dAll)) return null; // объект привязан к ближайшей точке прогноза
+      const peak=pt.days.reduce((b,x)=>x.runoff>b.runoff?x:b, {runoff:-1,date:'—'});
+      return {o, st, peak, v: Math.round(Math.max(0,peak.runoff)*st.catch_near_km2*1000)};
+    }).filter(Boolean).sort((a,b)=>b.v-a.v);
+    if(!objs.length) return;
+    const bigDays=pt.days.filter(x=>x.runoff>=12);
+    h+='<div style="margin-top:6px; font-size:12px; color:var(--mut)">Точка прогноза: <b>'+esc(pt.nm)+'</b>'
+      +(bigDays.length?(' · сутки со стоком ≥ 12 мм: <b style="color:#c62828">'+bigDays.map(x=>x.date.split('-').reverse().join('.')+' ('+x.runoff.toFixed(0)+' мм)').join(', ')+'</b>'):' · суток со стоком ≥ 12 мм не прогнозируется')+'</div>';
+    const show=objs.slice(0,15), rest=objs.length-show.length;
+    if(objs[0].v<250){ h+='<div class="warn-none" style="margin-top:4px">✔ Значимого притока к объектам (≥ 250 м³/сут) по прогнозу не ожидается — максимум ≈ '+objs[0].v+' м³/сут ('+esc(objs[0].o.a)+').</div>'; return; }
+    h+='<table class="gsTbl" style="margin-top:4px"><tr><th style="text-align:left">Объект (приток к пиковым суткам '+objs[0].peak.date.split('-').reverse().join('.')+'*)</th><th>Водосбор, км²</th><th>Сток, мм/сут</th><th>Приток, м³/сут</th><th>Риск стока</th></tr>';
+    show.forEach(x=>{
+      h+='<tr><td>'+esc(x.o.a)+'</td><td style="text-align:center">'+x.st.catch_near_km2+'</td>'
+        +'<td style="text-align:center">'+Math.max(0,x.peak.runoff).toFixed(1)+'</td>'
+        +'<td style="text-align:center"><b>'+(x.v>=1000?(x.v/1000).toFixed(1)+' тыс.':x.v)+'</b></td>'
+        +'<td><span class="gsPill" style="background:'+(rc[x.st.risk]||'#8a8a8a')+'">'+x.st.risk.toUpperCase()+'</span></td></tr>';
+    });
+    h+='</table>';
+    if(rest>0) h+='<div class="mut" style="margin-top:2px; font-size:11.5px">…и ещё '+rest+' объектов с меньшим притоком (от '+(objs[objs.length-1].v)+' до '+show[show.length-1].v+' м³/сут) — полная сводка: Центр контроля ГТМ → «🌊 Модель стока».</div>';
+    const hot=objs.filter(x=>x.v>=5000);
+    if(hot.length) h+='<div class="wg" style="margin-top:4px"><b>Меры при реализации пиковых суток:</b> '+hot.slice(0,8).map(x=>esc(x.o.a)+' (≈'+(x.v/1000).toFixed(1)+' тыс. м³/сут)').join('; ')+(hot.length>8?'; и ещё '+(hot.length-8)+' объекта(ов)':'')+' — усиленный контроль уровня пруда-накопителя (ш. 3300) и водоотводных трактов, готовность водосброса/откачки, внеочередной осмотр нагорных канав и лотков (ВСН 01-89).</div>';
+  });
+  h+='<div class="note" style="margin-top:4px">* для каждого объекта взяты его ближайшая точка прогноза и её пиковые сутки стока; сток по той же модели, что и вероятность подтопления выше (дождь + степень-часовое таяние, k = 0,9 мёрзлый / 0,6 переходный / 0,4 протаявший грунт, ×1,15 при дожде по снежному покрову). Скрининговая оценка — не заменяет расчёт максимального стока по СП 33.101-2003.</div></div>';
+  return h;
+}
+/* --- автотревога по ливневому притоку — журнал Центра контроля + уведомление дежурному --- */
+const STOK_ALARM_V=5000; // м³/сут — порог записи в журнал тревог (пиковые сутки прогноза)
+function stokInflowCheck(d){
+  try{
+    const S=window.STOK; if(!S||!S.objects||!d) return;
+    const scan=stokInflowScan(d); if(!scan.length) return;
+    const STM={}; S.objects.forEach(s=>STM[s.id]=s);
+    const hav=(la1,lo1,la2,lo2)=>{const r=Math.PI/180,dx=(lo2-lo1)*Math.cos(r*(la1+la2)/2),dy=la2-la1;return Math.hypot(dx,dy);};
+    const state=gsLoad('gs_inflow_v1',{}), now=new Date().toISOString(), newEv=[];
+    const firstRun=!Object.keys(state).length; // первичная инициализация — без событий (защита журнала от разового ливня переходов)
+    DB.objects.forEach(o=>{
+      const st=STM[o.id]; if(!st||typeof o.lat!=='number') return;
+      let best=null, bd=1e9;
+      scan.forEach(pt=>{ const dd=hav(o.lat,o.lon,pt.lat,pt.lon); if(dd<bd){ bd=dd; best=pt; } });
+      if(!best) return;
+      const peak=best.days.reduce((b,x)=>x.runoff>b.runoff?x:b, {runoff:-1,date:'—'});
+      const v=Math.round(Math.max(0,peak.runoff)*st.catch_near_km2*1000);
+      const lvl=v>=STOK_ALARM_V?1:0;
+      const prev=state[o.id]||{lvl:0};
+      if(lvl!==prev.lvl){
+        state[o.id]={lvl:lvl, v:v, date:peak.date, ts:now};
+        if(firstRun) return; // при первичной инициализации только фиксируем состояние
+        const vs=(v>=1000?(v/1000).toFixed(1)+' тыс.':v)+' м³/сут';
+        newEv.push({ts:now, obj:o.id, name:o.a, ent:o.d,
+          from: lvl?'сток в норме':'ПРИТОК ≥ 5 тыс. м³/сут',
+          to: lvl?'ПРИТОК ≥ 5 тыс. м³/сут':'сток в норме',
+          reasons:[(lvl?'⛔':'✔')+' Ливневый приток к объекту по прогнозу: ≈'+vs+' в пиковые сутки '+String(peak.date).split('-').reverse().join('.')+' (сток '+Math.max(0,peak.runoff).toFixed(1)+' мм × водосбор '+st.catch_near_km2+' км² · точка: '+best.nm+')',
+            lvl?'Меры: усиленный контроль уровня пруда-накопителя и водоотводных трактов, готовность водосброса/откачки, внеочередной осмотр нагорных канав и лотков (ВСН 01-89)':'Пик прогноза ниже порога 5 тыс. м³/сут — штатный режим наблюдений']});
+      }
+    });
+    if(newEv.length){
+      gsJournal.push(...newEv); if(gsJournal.length>500) gsJournal=gsJournal.slice(-500);
+      gsSave(GS_STORE.j,gsJournal); gsSbPush(newEv); gsNotifyPush(newEv); gsBadges(newEv.length);
+    }
+    gsSave('gs_inflow_v1',state);
+  }catch(e){ /* автотревога по притоку не должна прерывать метеоконтроль */ }
+}
 function wBadge(n){
   const b=document.getElementById('warnBadge'); if(!b) return;
   const rb=document.getElementById('regBtn');
@@ -5113,12 +5227,13 @@ function warnRender(d,stale){
 async function warnTick(force){
   let d=wCache();
   const hasNew=d&&d.pts&&d.pts[0]&&d.pts[0].hourly&&d.pts[0].hourly.snow_depth; // старый кэш без расширенных полей — обновить
-  if(!force&&d&&hasNew&&Date.now()-d.ts<55*60*1000){ warnRender(d,false); return d; }
-  try{ d=await warnFetch(); warnRender(d,false); return d; }
-  catch(e){ if(d){ warnRender(d,true); return d; } warnRender(null); return null; }
+  if(!force&&d&&hasNew&&Date.now()-d.ts<55*60*1000){ warnRender(d,false); stokInflowCheck(d); return d; }
+  try{ d=await warnFetch(); warnRender(d,false); stokInflowCheck(d); return d; }
+  catch(e){ if(d){ warnRender(d,true); stokInflowCheck(d); return d; } warnRender(null); return null; }
 }
 setInterval(()=>warnTick(false),60*60*1000);
 warnTick(false);
+setTimeout(()=>{ try{ const d=(typeof wCache==='function')?wCache():null; if(d) stokInflowCheck(d); }catch(e){} },3000); // первичная сверка притока после полной инициализации скрипта
 
 /* ---------- скрытое окно дежурного метеоконтроля (появляется по клику на полосу) ---------- */
 function wxDutyOpen(){
@@ -5154,6 +5269,7 @@ function wxDutyOpen(){
       });
     }
     h+=procHtml(d);
+    h+=stokInflowHtml(d);
     h+='<button class="wxd-regBtn" id="wxDutyReg">Открыть сводный реестр объектов РИСК/КРИТИЧНО</button>';
   }
   w.innerHTML=h;
@@ -7540,7 +7656,7 @@ async function gsJournalPull(){ // общая история из централ
   }catch(e){ /* центральная БД недоступна — журнал ведётся локально */ }
 }
 /* --- Б4. Уведомления дежурному: очередь, шлюз WhatsApp/Telegram/e-mail, квитирование --- */
-const GS_SEV={'нет данных':0,'НОРМА':1,'РИСК':2,'КРИТИЧНО':3};
+const GS_SEV={'нет данных':0,'НОРМА':1,'РИСК':2,'КРИТИЧНО':3,'сток в норме':1,'ПРИТОК ≥ 5 тыс. м³/сут':2};
 function gsNotifyPush(events){ // очередь уведомлений: только ухудшения до РИСК/КРИТИЧНО
   const items=(events||[]).filter(e=>(GS_SEV[e.to]||0)>=2&&(GS_SEV[e.to]||0)>(GS_SEV[e.from]||0))
     .map(e=>({id:e.ts+'|'+e.obj, ts:e.ts, obj:e.obj, name:e.name, ent:e.ent, from:e.from, to:e.to, reasons:e.reasons||[], ack:null}));
@@ -8109,8 +8225,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"w1gKHwOOaOGr0ae3DyyQ2Q==",ivV:"aegYXIZdLgecY6lX",wrapV:"MmR9LT168yZBCkHNQicDbpU5OmrMMBgm8m763iZSmtQ78iy7pNDtvIrNOCSMpZCY",saltE:"cTktIhMqJDiAFR8xblrZiA==",ivE:"/aW/MvT8WEAIyS+Q",wrapE:"/KT42C0/uKWM0aFfX4HkzJTmCf8npH48vOUAFhAMj6tsyvAW7qJjQN7SDbKDCdU0",ivD:"slbWvv6vIEgRW4RC"};
-const BUILD="511650fa";
+const ENC={saltV:"s7lkn/JPR7CbvnK/IQyTTg==",ivV:"4OIAgOmj3Zv2PlH+",wrapV:"59qBvbMYj+z5XL84BFkeFfaRhLV3NVEzRTInY2kP1wG40mr7SYIDkFL3aMjZHvCr",saltE:"ncLGjsIubCgWEHLK1+q13Q==",ivE:"PyBY8pxSZqg2y3Oy",wrapE:"x4uRdn4Uijxe0qrD4Zw3RejU9/fwWNmE4zRKvlVDt1Z+gByGyet+85BVKs2HIcYa",ivD:"2NSNQKDapsf/yvBs"};
+const BUILD="f0a428fc";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
