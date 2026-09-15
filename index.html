@@ -773,14 +773,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=72b85a94"></script>
-<script src="db_p2.js?v=72b85a94"></script>
-<script src="db_p3.js?v=72b85a94"></script>
-<script src="db_p4.js?v=72b85a94"></script>
-<script src="db_p5.js?v=72b85a94"></script>
-<script src="db_p6.js?v=72b85a94"></script>
-<script src="db_p7.js?v=72b85a94"></script>
-<script src="db_p8.js?v=72b85a94"></script>
+<script src="db_p1.js?v=3fa3827e"></script>
+<script src="db_p2.js?v=3fa3827e"></script>
+<script src="db_p3.js?v=3fa3827e"></script>
+<script src="db_p4.js?v=3fa3827e"></script>
+<script src="db_p5.js?v=3fa3827e"></script>
+<script src="db_p6.js?v=3fa3827e"></script>
+<script src="db_p7.js?v=3fa3827e"></script>
+<script src="db_p8.js?v=3fa3827e"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -8117,7 +8117,7 @@ function gsViewStok(){
       Группа: <select id="stokFG" style="font-size:12px"><option value="">все группы</option>${groups.map(g=>`<option ${stokFG===g?'selected':''} value="${esc(g)}">${esc(g)}</option>`).join('')}</select>
       Риск: <select id="stokFR" style="font-size:12px"><option value="">любой</option>${['высокий','средний','низкий'].map(r=>`<option ${stokFR===r?'selected':''}>${r}</option>`).join('')}</select>
       <span class="mut">показано: ${flt.length} из ${S.objects.length}</span>
-      <button class="wbtn" id="stokXls" style="font-size:12px" title="Сводная гидрологическая оценка по всем объектам реестра ГТМ — водосбор, русло, уклоны, риск, сценарии притока; для приложения к программе ГТМ">⬇ Сводная таблица в Excel (все ${S.objects.length})</button>
+      <button class="wbtn" id="stokXls" style="font-size:12px" title="Сводная гидрологическая оценка по всем объектам реестра ГТМ — водосбор, русло, уклоны, риск, сценарии притока; 2 листа: «Гидрооценка» (объекты) + «Площадки» (агрегаты). Для приложения к программе ГТМ">⬇ Сводная таблица в Excel (все ${S.objects.length})</button>
     </div>
     <table class="gsTbl"><tr><th style="text-align:left">Объект / площадка</th><th>Отметка</th><th>Водосбор к объекту, км²</th><th>До водотока</th><th>Уклон сред./макс.</th><th>Замкн. понижения</th><th>Риск стока</th></tr>${rows}</table>
     <div class="mut" style="margin-top:4px">Категории (скрининг): <b>высокий</b> — водосбор ≥ 5 км² у объекта, либо расчётное русло ≤ 150 м при водосборе ≥ 1 км²; <b>средний</b> — водосбор ≥ 1 км², русло ≤ 300 м либо застойные понижения ≥ 10% буфера; иначе — <b>низкий</b>. Пороги корректируются по результатам полевой верификации (предпаводковые осмотры).</div>
@@ -8160,6 +8160,30 @@ function stokExportXls(){
   ws['!cols']=[{wch:4},{wch:9},{wch:48},{wch:28},{wch:10},{wch:15},{wch:12},{wch:9},{wch:11},{wch:13},{wch:12},{wch:12},{wch:12},{wch:16},{wch:12}];
   ws['!merges']=[0,1,2].map(r=>({s:{r,c:0},e:{r,c:14}}));
   const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Гидрооценка');
+  /* --- лист 2: агрегаты по площадкам (свод для программы ГТМ) --- */
+  const pads={}; S.objects.forEach(st=>{ const k=st.pl||'(вне площадок)'; (pads[k]=pads[k]||[]).push(st); });
+  const riskW={'высокий':3,'средний':2,'низкий':1};
+  const pKeys=Object.keys(pads).sort((a,b)=>{
+    const ra=Math.max.apply(null,pads[a].map(s=>riskW[s.risk]||0)), rb=Math.max.apply(null,pads[b].map(s=>riskW[s.risk]||0));
+    if(rb!==ra) return rb-ra;
+    return Math.max.apply(null,pads[b].map(s=>s.catch_near_km2))-Math.max.apply(null,pads[a].map(s=>s.catch_near_km2));
+  });
+  const pCols=['№','Площадка','Объектов всего','Риск высокий','Риск средний','Риск низкий','Макс. водосбор, км²','Мин. расстояние до водотока, м','Итоговый риск площадки','Макс. приток 30 мм, м³/сут'];
+  const pBody=pKeys.map((k,i)=>{
+    const ms=pads[k];
+    const hi=ms.filter(s=>s.risk==='высокий').length, mi=ms.filter(s=>s.risk==='средний').length, lo=ms.length-hi-mi;
+    const cmax=Math.max.apply(null,ms.map(s=>s.catch_near_km2));
+    const dmin=Math.min.apply(null,ms.map(s=>s.dist_stream_m));
+    return [i+1,k,ms.length,hi,mi,lo,+cmax.toFixed(2),dmin,hi?'высокий':mi?'средний':'низкий',Math.round(30*cmax*1000)];
+  });
+  const pTot=['','ИТОГО',S.objects.length,
+    S.objects.filter(s=>s.risk==='высокий').length,S.objects.filter(s=>s.risk==='средний').length,S.objects.filter(s=>s.risk==='низкий').length,
+    +Math.max.apply(null,S.objects.map(s=>s.catch_near_km2)).toFixed(2),Math.min.apply(null,S.objects.map(s=>s.dist_stream_m)),'—',Math.round(30*Math.max.apply(null,S.objects.map(s=>s.catch_near_km2))*1000)];
+  const pHead=[['Агрегаты по площадкам — свод для программы ГТМ'],['Площадок: '+pKeys.length+' · сортировка: итоговый риск → макс. водосбор · сформировано '+today.toLocaleDateString('ru-RU')],[]];
+  const ws2=XLSX.utils.aoa_to_sheet(pHead.concat([pCols],pBody,[[],pTot,[],['Итоговый риск площадки — наивысшая категория риска среди её объектов. Макс. приток 30 мм — по наибольшему водосбору площадки (опасное явление, критерий Росгидромета).']]));
+  ws2['!cols']=[{wch:4},{wch:46},{wch:10},{wch:10},{wch:10},{wch:10},{wch:13},{wch:15},{wch:14},{wch:15}];
+  ws2['!merges']=[0,1].map(r=>({s:{r,c:0},e:{r,c:9}}));
+  XLSX.utils.book_append_sheet(wb,ws2,'Площадки');
   const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
   const a=document.createElement('a'); a.id='stokXlsA';
   a.href=URL.createObjectURL(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
@@ -8277,8 +8301,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"e46Kc1qme7n32wP0JmLjtw==",ivV:"rdKisu7jvdZhyWmW",wrapV:"JBWd/9Z2f6rd4o59/PRPS4tZjXwO7aVeYTy+ExnnXLibr2tOAtGw5FC0FVMNZonK",saltE:"HjZ3mKSnNNsRV8AN8flwgw==",ivE:"qeDCyoxLHp4lBsbb",wrapE:"7tRQw/N9PVrbBfGDhmRitWMPqIi0hHC9DgSDIo/e2vl17U8sSoV5quow0xIOTUCM",ivD:"keF/og5Fe1a8rHAU"};
-const BUILD="72b85a94";
+const ENC={saltV:"uCvhUfwwqKcF8FR3qI15iQ==",ivV:"NEKdRRkTyHKVRDrC",wrapV:"6td3g8LMy5Gq/v6lyxYl5mpybEnpZs5Jfk/XXUk4iOlfHOd5KCQKsdLzxbzMEi+P",saltE:"seWBAWpb0hhnEEBvIzUNzA==",ivE:"9Jc3XIfRi/77hXra",wrapE:"oy0yKm7c5+P9zBQZufBV+eWSTOq4BIWjeKP/+LahNBGTQjqPvzH0pKNdVUlaTo2R",ivD:"cH7xoQD8ubGoxTLT"};
+const BUILD="3fa3827e";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
