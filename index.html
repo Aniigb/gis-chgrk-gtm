@@ -773,14 +773,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=174744a7"></script>
-<script src="db_p2.js?v=174744a7"></script>
-<script src="db_p3.js?v=174744a7"></script>
-<script src="db_p4.js?v=174744a7"></script>
-<script src="db_p5.js?v=174744a7"></script>
-<script src="db_p6.js?v=174744a7"></script>
-<script src="db_p7.js?v=174744a7"></script>
-<script src="db_p8.js?v=174744a7"></script>
+<script src="db_p1.js?v=72b85a94"></script>
+<script src="db_p2.js?v=72b85a94"></script>
+<script src="db_p3.js?v=72b85a94"></script>
+<script src="db_p4.js?v=72b85a94"></script>
+<script src="db_p5.js?v=72b85a94"></script>
+<script src="db_p6.js?v=72b85a94"></script>
+<script src="db_p7.js?v=72b85a94"></script>
+<script src="db_p8.js?v=72b85a94"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -8117,6 +8117,7 @@ function gsViewStok(){
       Группа: <select id="stokFG" style="font-size:12px"><option value="">все группы</option>${groups.map(g=>`<option ${stokFG===g?'selected':''} value="${esc(g)}">${esc(g)}</option>`).join('')}</select>
       Риск: <select id="stokFR" style="font-size:12px"><option value="">любой</option>${['высокий','средний','низкий'].map(r=>`<option ${stokFR===r?'selected':''}>${r}</option>`).join('')}</select>
       <span class="mut">показано: ${flt.length} из ${S.objects.length}</span>
+      <button class="wbtn" id="stokXls" style="font-size:12px" title="Сводная гидрологическая оценка по всем объектам реестра ГТМ — водосбор, русло, уклоны, риск, сценарии притока; для приложения к программе ГТМ">⬇ Сводная таблица в Excel (все ${S.objects.length})</button>
     </div>
     <table class="gsTbl"><tr><th style="text-align:left">Объект / площадка</th><th>Отметка</th><th>Водосбор к объекту, км²</th><th>До водотока</th><th>Уклон сред./макс.</th><th>Замкн. понижения</th><th>Риск стока</th></tr>${rows}</table>
     <div class="mut" style="margin-top:4px">Категории (скрининг): <b>высокий</b> — водосбор ≥ 5 км² у объекта, либо расчётное русло ≤ 150 м при водосборе ≥ 1 км²; <b>средний</b> — водосбор ≥ 1 км², русло ≤ 300 м либо застойные понижения ≥ 10% буфера; иначе — <b>низкий</b>. Пороги корректируются по результатам полевой верификации (предпаводковые осмотры).</div>
@@ -8134,6 +8135,36 @@ function gsViewStok(){
       <span class="mut">Методическая база: СП 116.13330 (производственный контроль), СП 446.13330 (инженерно-гидрометеорологические изыскания), ВСН 01-89 (предпаводковые осмотры), СП 25.13330.2020 (защита оснований на ММГ от увлажнения). Модуль не заменяет расчёт максимального стока по СП 33.101-2003 и проектные решения по водоотводу — он показывает пространственную организацию стока для планирования наблюдений и осмотров.</span>
     </div>
   </div>`;
+}
+/* --- выгрузка сводной гидрологической оценки в Excel (разрешённое исключение политики скачивания: #stokXlsA) --- */
+function stokExportXls(){
+  const S=window.STOK;
+  if(!S||typeof XLSX==='undefined'){ alert('Модуль выгрузки недоступен (библиотека XLSX не загружена).'); return; }
+  const today=new Date(), iso=today.toISOString().slice(0,10);
+  const head=[
+    ['Сводная гидрологическая оценка объектов ГТМ (поверхностный сток, скрининг по ЦМР)'],
+    ['ООО «Черногорская ГРК» · система ГТМ зданий и сооружений · приложение к программе ГТМ'],
+    ['Сформировано: '+today.toLocaleDateString('ru-RU')+' · объектов: '+S.objects.length+' · источник рельефа: '+(S.src||'Copernicus DEM GLO-30')],
+    []
+  ];
+  const cols=['№','Шифр','Объект / площадка','Группа','Отметка по ЦМР, м','Водосбор к объекту (радиус 500 м), км²','До расчётного водотока, м','Уклон средний, °','Уклон максимальный, °','Замкнутые понижения, % буфера','Риск стока (скрининг)','Приток 5 мм, м³/сут','Приток 15 мм, м³/сут','Приток 30 мм (опасное явление), м³/сут','Приток 50 мм, м³/сут'];
+  const body=S.objects.map((st,i)=>[i+1, st.id, st.name, st.d||'', st.elev!==null?st.elev:'—', st.catch_near_km2, st.dist_stream_m, st.slope_mean, st.slope_max, st.depr_pct, st.risk,
+    Math.round(5*st.catch_near_km2*1000), Math.round(15*st.catch_near_km2*1000), Math.round(30*st.catch_near_km2*1000), Math.round(50*st.catch_near_km2*1000)]);
+  const foot=[
+    [],
+    ['Категории риска (скрининг): высокий — водосбор ≥ 5 км² у объекта либо расчётное русло ≤ 150 м при водосборе ≥ 1 км²; средний — водосбор ≥ 1 км², русло ≤ 300 м либо застойные понижения ≥ 10 % буфера; иначе — низкий.'],
+    ['Приток (м³/сут) = суточный сток (мм) × водосбор (км²) × 1 000; 30 мм/сут — критерий опасного явления (Росгидромет).'],
+    ['Оценка скрининговая: не заменяет расчёт максимального стока по СП 33.101-2003 и проектные решения по водоотводу (СП 25.13330.2020 — защита оснований на ММГ от увлажнения).']
+  ];
+  const ws=XLSX.utils.aoa_to_sheet(head.concat([cols],body,foot));
+  ws['!cols']=[{wch:4},{wch:9},{wch:48},{wch:28},{wch:10},{wch:15},{wch:12},{wch:9},{wch:11},{wch:13},{wch:12},{wch:12},{wch:12},{wch:16},{wch:12}];
+  ws['!merges']=[0,1,2].map(r=>({s:{r,c:0},e:{r,c:14}}));
+  const wb=XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb,ws,'Гидрооценка');
+  const out=XLSX.write(wb,{bookType:'xlsx',type:'array'});
+  const a=document.createElement('a'); a.id='stokXlsA';
+  a.href=URL.createObjectURL(new Blob([out],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'}));
+  a.download='Гидрологическая_оценка_объектов_ГТМ_ЧГРК_'+iso+'.xlsx';
+  a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
 /* --- диспетчер --- */
 const GS_VIEWS={alerts:gsViewAlerts, risk:gsViewRisk, prog:gsViewProg, sensors:gsViewSensors, data:gsViewData, road:gsViewRoad, sched:gsViewSched, stok:gsViewStok};
@@ -8158,6 +8189,7 @@ function gsBindCommon(){
   }));
   const fG=document.getElementById('stokFG'); if(fG) fG.onchange=()=>{ stokFG=fG.value; gsOpen('stok',true); };
   const fR=document.getElementById('stokFR'); if(fR) fR.onchange=()=>{ stokFR=fR.value; gsOpen('stok',true); };
+  const bX=document.getElementById('stokXls'); if(bX) bX.onclick=()=>stokExportXls();
   const dE=document.getElementById('gsDutyEdit'); if(dE) dE.onclick=()=>{ const f=document.getElementById('gsDutyForm'); if(f) f.style.display=(f.style.display==='none'||!f.style.display)?'':'none'; };
   const dS=document.getElementById('gsDutySave'); if(dS) dS.onclick=()=>{ gsDuty={name:document.getElementById('gsDutyName').value.trim(), phone:document.getElementById('gsDutyPhone').value.trim(), tg:document.getElementById('gsDutyTg').value.trim().replace(/^@/,''), mail:document.getElementById('gsDutyMail').value.trim()}; gsSave(GS_STORE.duty,gsDuty); gsOpen('alerts',true); };
   d.querySelectorAll('[data-gsack]').forEach(el=>el.addEventListener('click',()=>gsAckNtf(el.dataset.gsack)));
@@ -8195,12 +8227,12 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 /* ---------- защищённый режим: запрет копирования/скачивания/скриншотов (скачивание разрешено только для презентации) ---------- */
 (function(){
   const ALLOW=el=>!!(el&&el.closest&&(el.closest('#niokrModal')||el.closest('#presBtn')||el.closest('input,textarea,[contenteditable="true"]')));
-  const DL_DENY='#repPrint, #regExport, #uplExport, #uplCsvTpl, #skExport, #gostPassBtn, a[download]:not(#presBtn)'; // выгрузки, закрытые политикой
+  const DL_DENY='#repPrint, #regExport, #uplExport, #uplCsvTpl, #skExport, #gostPassBtn, a[download]:not(#presBtn):not(#stokXlsA)'; // выгрузки, закрытые политикой
   let _cpT=null;
   function cpToast(){
     let t=document.getElementById('cpToast');
     if(!t){ t=document.createElement('div'); t.id='cpToast'; document.body.appendChild(t); }
-    t.textContent='Копирование, выгрузка, печать и снимки материалов отключены — сведения ограниченного доступа (ФЗ-98 «О коммерческой тайне»). Для скачивания доступна только презентация проекта (кнопка «⤓ Презентация»).';
+    t.textContent='Копирование, выгрузка, печать и снимки материалов отключены — сведения ограниченного доступа (ФЗ-98 «О коммерческой тайне»). Для скачивания доступны: презентация проекта (кнопка «⤓ Презентация») и сводная гидрологическая таблица (Центр контроля ГТМ → «🌊 Модель стока»).';
     t.classList.add('on'); clearTimeout(_cpT); _cpT=setTimeout(()=>t.classList.remove('on'), 2600);
   }
   // печать полностью скрывает содержимое; размытие при потере фокуса — затруднение снимков экрана
@@ -8220,7 +8252,7 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
   // программные скачивания через отсоединённые <a download> (акты, расшифрованные файлы и т.п.)
   const _ac=HTMLAnchorElement.prototype.click;
   HTMLAnchorElement.prototype.click=function(){
-    if(this&&this.hasAttribute&&this.hasAttribute('download')&&this.id!=='presBtn'){ cpToast(); return; }
+    if(this&&this.hasAttribute&&this.hasAttribute('download')&&this.id!=='presBtn'&&this.id!=='stokXlsA'){ cpToast(); return; }
     return _ac.apply(this,arguments);
   };
   // печать / сохранение в PDF
@@ -8245,8 +8277,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"9hOLkETqNwl0/9SEaFYhtA==",ivV:"Ygob6iD7m5oxuN1w",wrapV:"tgsbUziJ5+SUTunUgmG1NjZrGkwPKGUsS7D4m3XztZ5/QiQb4tYSAzi5i5s7jrEK",saltE:"iLnrVGbuV9ef0CqIgsrPyw==",ivE:"E0iTHoJZ9v4DJBMs",wrapE:"SXI3KVTRAliV/VuetWFlFfd+GK+CBkRtgNn8NV3VeA9MSbfdN0PigLp/Ayk6ANC6",ivD:"ZNK5QcKgWFFDXQHO"};
-const BUILD="174744a7";
+const ENC={saltV:"e46Kc1qme7n32wP0JmLjtw==",ivV:"rdKisu7jvdZhyWmW",wrapV:"JBWd/9Z2f6rd4o59/PRPS4tZjXwO7aVeYTy+ExnnXLibr2tOAtGw5FC0FVMNZonK",saltE:"HjZ3mKSnNNsRV8AN8flwgw==",ivE:"qeDCyoxLHp4lBsbb",wrapE:"7tRQw/N9PVrbBfGDhmRitWMPqIi0hHC9DgSDIo/e2vl17U8sSoV5quow0xIOTUCM",ivD:"keF/og5Fe1a8rHAU"};
+const BUILD="72b85a94";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
