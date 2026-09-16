@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=04e29d9e"></script>
-<script src="db_p2.js?v=04e29d9e"></script>
-<script src="db_p3.js?v=04e29d9e"></script>
-<script src="db_p4.js?v=04e29d9e"></script>
-<script src="db_p5.js?v=04e29d9e"></script>
-<script src="db_p6.js?v=04e29d9e"></script>
-<script src="db_p7.js?v=04e29d9e"></script>
-<script src="db_p8.js?v=04e29d9e"></script>
+<script src="db_p1.js?v=c8592d13"></script>
+<script src="db_p2.js?v=c8592d13"></script>
+<script src="db_p3.js?v=c8592d13"></script>
+<script src="db_p4.js?v=c8592d13"></script>
+<script src="db_p5.js?v=c8592d13"></script>
+<script src="db_p6.js?v=c8592d13"></script>
+<script src="db_p7.js?v=c8592d13"></script>
+<script src="db_p8.js?v=c8592d13"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -7607,7 +7607,7 @@ const GS_ROAD=[
    {k:'C3', t:'Интеграция со службой мерзлотного надзора ЧГОК — автоматические входные события', d0:'план'},
    {k:'C4', t:'АМС на территории комбината и валидация метеомодели по местным замерам', d0:'план'},
    {k:'C5', t:'Ежегодный БПЛА-мониторинг откосов и насыпей с ЦМР (ортофото + цифровая модель рельефа)', d0:'план'},
-   {k:'C6', t:'Пересчёт модели поверхностного стока на инженерной ЦМР (БПЛА-съёмка / InSAR): обновляются только входные данные, код системы не меняется', d0:'план'}]}
+   {k:'C6', t:'Регламентное действие: при получении инженерной ЦМР (БПЛА-съёмка / InSAR) — пересчёт модели поверхностного стока и пересборка пакета «Приложение по гидрологии» (PDF + Excel). Обновляются только входные данные (растр ЦМР, stok_data.js, карты площадок), код системы не меняется; срок выполнения — 10 рабочих дней с получения ЦМР', d0:'план'}]}
 ];
 const GS_SENSORS=[
  {k:'s1', t:'Телеметрия пьезометров', aim:'непрерывный контроль уровней и напоров в теле плотины ш. 3301 и по контуру водоотводных каналов', kit:'автономные уровнемёры с GPRS-передачей на ключевых сечениях ГТС площадки', eff:'устранение «слепых промежутков» между ручными замерами; прямой автоконтроль контрольных отметок К1/К2'},
@@ -8135,7 +8135,8 @@ function gsViewStok(){
     <div style="font-size:12.5px;line-height:1.65">
       Модель отвечает на вопрос: <b>откуда и каким объёмом придёт поверхностная вода к каждому зданию и сооружению</b> — при ливнях, снеготаянии и наледных процессах. Это прямой вход для режимных мер: контроль водоотвода от фундаментов и техподполий (защита мёрзлых оснований от переувлажнения — СП 25.13330.2020), готовность системы сбора карьерных и поверхностных вод (ш. 3200), баланс наполнения пруда-накопителя (ш. 3300) и нагрузка на плотину (ш. 3301), наледный контроль автодорог в точках пересечения с расчётной гидросетью.<br>
       <b>Метод:</b> заполнение локальных понижений ЦМР (priority-flood) → направление стока D8 → аккумуляция стока; расчётные водотоки выделяются от водосбора ~1 км². <b>Исходные данные:</b> ${esc(S.src)}.<br>
-      <span class="mut">⚠ Скрининговый уровень точности: ячейка ~31×22 м не разрешает насыпи, канавы и лотки (их высота/ширина меньше ячейки). Модель показывает природную организацию стока, а не гидравлику сооружений водоотвода. При получении инженерной ЦМР (БПЛА-съёмка площадки) модуль пересчитывается без изменения кода — заменой исходного растра. Объекты с условной геопозицией (по центроиду/метке площадки — поле «Позиция» карточки) получают оценку уровня площадки.</span>
+      <span class="mut">⚠ Скрининговый уровень точности: ячейка ~31×22 м не разрешает насыпи, канавы и лотки (их высота/ширина меньше ячейки). Модель показывает природную организацию стока, а не гидравлику сооружений водоотвода. Объекты с условной геопозицией (по центроиду/метке площадки — поле «Позиция» карточки) получают оценку уровня площадки.</span><br>
+      <span style="color:var(--c-centr);font-weight:600">📌 Регламентное действие (дорожная карта, пункт C6): при получении инженерной ЦМР (БПЛА-съёмка площадки / InSAR) модель пересчитывается без изменения кода — заменой исходного растра; одновременно пересобираются пакет «Приложение по гидрологии» (PDF) и Excel-выгрузка гидрологической оценки. Срок — 10 рабочих дней с получения ЦМР.</span>
     </div>
   </div>
   <div class="gsCard"><h3>Обзорная карта: рельеф, расчётная гидросеть, объекты</h3>
@@ -8233,6 +8234,42 @@ const PAV_CHK=[
  {k:'c9', t:'Готовность водоотливной техники, ГСМ и материалов аварийной заделки (грунт, мешки, геотекстиль)'},
  {k:'c10',t:'План паводковых мероприятий утверждён, дежурные назначены, канал связи с дежурным метеоконтролем проверен'}
 ];
+/* --- климатическое окно паводка по метеоархиву ERA5 (Open-Meteo archive, точка Черногорский ГОК);
+   критерии согласованы с сезонным гейтом stokSeason: начало окна — серия tmax > 0 °C 5+ сут (с 01.03),
+   конец — день перед серией tmax ≤ 0 °C 5+ сут (с 01.08). Расчёт: _build/pav_clim.py --- */
+const PAV_CLIM={"period":"2011–2025","src":"Open-Meteo archive (ERA5)","lat":69.2156,"lon":88.317,"years":[{"y":2011,"s":106,"e":289},{"y":2012,"s":147,"e":274},{"y":2013,"s":134,"e":265},{"y":2014,"s":145,"e":265},{"y":2015,"s":125,"e":271},{"y":2016,"s":140,"e":284},{"y":2017,"s":148,"e":268},{"y":2018,"s":153,"e":287},{"y":2019,"s":148,"e":280},{"y":2020,"s":96,"e":276},{"y":2021,"s":117,"e":281},{"y":2022,"s":132,"e":270},{"y":2023,"s":145,"e":293},{"y":2024,"s":159,"e":278},{"y":2025,"s":124,"e":265}],"s":{"min":96,"med":140,"max":159,"minL":"05.04","medL":"19.05","maxL":"07.06"},"e":{"min":265,"med":276,"max":293,"minL":"21.09","medL":"02.10","maxL":"19.10"}};
+function pavClimCard(){
+  const C=PAV_CLIM; if(!C||!C.years||!C.years.length) return '';
+  const now=new Date();
+  const doy=Math.floor((now-new Date(now.getFullYear(),0,0))/864e5);
+  const X0=60,X1=320, x=d=>40+(d-X0)/(X1-X0)*500;
+  const M=[[60,'мар'],[91,'апр'],[121,'май'],[152,'июн'],[182,'июл'],[213,'авг'],[244,'сен'],[274,'окт'],[305,'ноя']];
+  const H=30+C.years.length*13+18;
+  let axis='', rows='', i=0;
+  M.forEach(m=>{ axis+='<line x1="'+x(m[0])+'" y1="24" x2="'+x(m[0])+'" y2="'+(H-16)+'" stroke="#e3e7ee" stroke-width="1"/>'
+    +'<text x="'+x(m[0])+'" y="20" font-size="7.5" fill="#8a93a3" text-anchor="middle">'+m[1]+'</text>'; });
+  C.years.forEach(y=>{ rows+='<text x="36" y="'+(37+i*13)+'" text-anchor="end" font-size="7.5" fill="#8a93a3">'+y.y+'</text>'
+    +'<rect x="'+x(y.s).toFixed(1)+'" y="'+(30+i*13)+'" width="'+Math.max(2,x(y.e)-x(y.s)).toFixed(1)+'" height="8" rx="3" fill="#A8BBE0"/>'; i++; });
+  const med='<rect x="'+x(C.s.med)+'" y="24" width="'+(x(C.e.med)-x(C.s.med))+'" height="'+(H-40)+'" fill="#14295E" opacity="0.05"/>'
+    +'<line x1="'+x(C.s.med)+'" y1="24" x2="'+x(C.s.med)+'" y2="'+(H-16)+'" stroke="#14295E" stroke-width="1.2" stroke-dasharray="4 2"/>'
+    +'<line x1="'+x(C.e.med)+'" y1="24" x2="'+x(C.e.med)+'" y2="'+(H-16)+'" stroke="#14295E" stroke-width="1.2" stroke-dasharray="4 2"/>'
+    +'<text x="'+x(C.s.med)+'" y="'+(H-5)+'" font-size="7.5" fill="#14295E" text-anchor="middle">медиана '+C.s.medL+'</text>'
+    +'<text x="'+x(C.e.med)+'" y="'+(H-5)+'" font-size="7.5" fill="#14295E" text-anchor="middle">медиана '+C.e.medL+'</text>';
+  const today=(doy>=X0&&doy<=X1)?'<line x1="'+x(doy)+'" y1="24" x2="'+x(doy)+'" y2="'+(H-16)+'" stroke="#C62828" stroke-width="1.4"/>':'';
+  let st, stc;
+  if(doy<C.s.min){ st='❄ Сейчас вне климатического окна паводка — период устойчивого мороза, талая вода физически отсутствует. До медианного начала окна ('+C.s.medL+') — '+(C.s.med-doy)+' сут.'; stc='#14295E'; }
+  else if(doy<=C.e.max){
+    if(doy<=C.e.med) st='💧 Идёт климатическое окно возможного паводка (начало в интервале '+C.s.minL+'…'+C.s.maxL+', медиана '+C.s.medL+'). До медианного конца окна ('+C.e.medL+') — '+(C.e.med-doy)+' сут.';
+    else st='💧 Климатическое окно паводка завершается: медианный конец ('+C.e.medL+') пройден, поздний — '+C.e.maxL+'.';
+    stc='#2e7d32';
+  }
+  else{ st='❄ Климатическое окно паводка закрыто (поздний конец '+C.e.maxL+' пройден) — период устойчивого мороза. До медианного начала следующего окна — '+(365-doy+C.s.med)+' сут.'; stc='#14295E'; }
+  return '<div class="gsCard"><h3>🗓 Климатическое окно паводка (метеоархив ERA5, '+C.period+')</h3>'
+    +'<div style="border-left:3px solid '+stc+'; background:var(--bg); padding:5px 8px; font-size:12.5px; margin-bottom:6px">'+st+'</div>'
+    +'<svg viewBox="0 0 560 '+H+'" style="width:100%; max-width:780px; display:block">'+axis+med+rows+today+'</svg>'
+    +'<div style="font-size:12px; margin-top:4px">Начало окна — устойчивые переходы tmax через 0 °C (снеготаяние): медиана <b>'+C.s.medL+'</b>, разброс '+C.s.minL+'…'+C.s.maxL+'. Конец — начало устойчивого мороза: медиана <b>'+C.e.medL+'</b>, разброс '+C.e.minL+'…'+C.e.maxL+'. Медианная длительность окна — <b>'+(C.e.med-C.s.med)+' сут</b>. Красная отметка — сегодня.</div>'
+    +'<div class="mut" style="margin-top:4px">Критерии согласованы с сезонным гейтом метеоконтроля: начало окна — первый день серии tmax &gt; 0 °C пять и более суток подряд (поиск с 1 марта); конец — день перед первой серией tmax ≤ 0 °C пять и более суток подряд (поиск с 1 августа). Данные: '+C.src+', '+C.period+', точка Черногорский ГОК ('+C.lat+' N, '+C.lon+' E). Сезонный гейт тревог стока действует внутри этого окна; вне его гидрологические тревоги методологически отключены. Климатология — не прогноз: сроки конкретного сезона определяются текущими метеоданными (блок «Предупреждения» / метеоконтроль).</div></div>';
+}
 function pavState(k){ const r=gsPav[k]; return (r&&r.v)||'план'; }
 function gsViewPav(){
   const S=window.STOK;
@@ -8267,6 +8304,7 @@ function gsViewPav(){
   <div class="gsCard"><h3>Готовность сезона: ${pct}%</h3><div class="gsBar"><i style="width:${pct}%"></i></div>
     <div class="mut">Чек-лист мероприятий: ${doneC} из ${PAV_CHK.length} · осмотры площадок категории «высокий»: ${doneP} из ${pKeys.length}. Статусы сохраняются локально в этом браузере. Перед новым паводковым сезоном — сброс отметок: <button class="wbtn" data-pvreset style="font-size:12px">↺ Новый сезон (сброс)</button></div>
     <div class="mut" style="margin-top:4px">Период возможного паводка определяется метеоданными, а не календарём: переходы температуры через 0 °C весной (снеготаяние), дожди и ливни тёплого сезона, осень — до начала устойчивых морозов. При устойчивом морозе талая вода физически отсутствует — гидрологические тревоги метеоконтроля отключены (правило закреплено в методологии прогноза).</div></div>
+  ${pavClimCard()}
   <div class="gsCard"><h3>Чек-лист предпаводковых мероприятий (ВСН 01-89)</h3>${rowsC}</div>
   <div class="gsCard"><h3>Осмотры площадок с объектами категории «высокий» (${pKeys.length})</h3>
     ${rowsP||'<div class="mut">Данные модели стока не загружены.</div>'}
@@ -8440,8 +8478,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"qnTURwKM9FOOhpfNFEOdcw==",ivV:"kqOMszk0DEnlACXI",wrapV:"01GQtnWgsAjpG1Dq8xFTD/bk1+9pBfxK4g8nVlDVT+O+DwTK7jqDlAeYoxG5Lnv7",saltE:"E0CE1BsD/XDogyyD/XUJew==",ivE:"qg4UA3VVKfXC4T0Q",wrapE:"lzI3/cPfmHXxYqiqu6VcBZui3chqSB+KKFboMaXtdOzPwdC47RCH5qT3YI26AiAA",ivD:"8Hy9pqBMDzXuoMXs"};
-const BUILD="04e29d9e";
+const ENC={saltV:"TE+ovDiwmx4xdd2TYLJ4Tw==",ivV:"sQWC8oA3CJMKHlxy",wrapV:"aylZ3mCnCW1y5KOr7GIl++lgSjO86YfzDtvmeJyXtR+2lEBUc6+1Lqxjtkvl5Uk4",saltE:"YsODN/K/+Qrv7YpwvAhtkA==",ivE:"mbURVrokX/hCGrmi",wrapE:"RqWW+ZUvBmZQV19lsPzqJCqcozMEmefXj2VNTz8jBrvemxmuLGFJOyzDO3DkbVhb",ivD:"9Q9rmcGlwxSmTE1f"};
+const BUILD="c8592d13";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
