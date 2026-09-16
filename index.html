@@ -524,6 +524,7 @@
         <button data-gs="road" title="Этапы А/Б/В развития системы: доказательность данных → непрерывность → прогноз и интеграция">🗺 Дорожная карта<i class="bdg" id="gsBdgR" style="display:none"></i></button>
         <button data-gs="sched" title="Рабочий график циклов замеров КИА: термометрия, пьезометрия, деформации — ближайшие циклы, напоминания, ссылки на журналы и памятку">📅 График замеров КИА<i class="bdg" id="gsBdgS" style="display:none"></i></button>
         <button data-gs="stok" title="Модель поверхностного стока по ЦМР (Copernicus GLO-30): расчётные водотоки и водосборы у каждого объекта, зоны застоя талых вод, скрининг риска подтопления, размывов и наледей">🌊 Модель стока</button>
+        <button data-gs="pav" title="Готовность к паводку: чек-лист предпаводковых осмотров (ВСН 01-89) и отметки выполнения по площадкам с объектами категории «высокий» (по модели стока)">🛡 Паводок<i class="bdg" id="gsBdgP" style="display:none"></i></button>
       </div>
     </div>
   </div>
@@ -773,14 +774,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=3fa3827e"></script>
-<script src="db_p2.js?v=3fa3827e"></script>
-<script src="db_p3.js?v=3fa3827e"></script>
-<script src="db_p4.js?v=3fa3827e"></script>
-<script src="db_p5.js?v=3fa3827e"></script>
-<script src="db_p6.js?v=3fa3827e"></script>
-<script src="db_p7.js?v=3fa3827e"></script>
-<script src="db_p8.js?v=3fa3827e"></script>
+<script src="db_p1.js?v=ee601dbd"></script>
+<script src="db_p2.js?v=ee601dbd"></script>
+<script src="db_p3.js?v=ee601dbd"></script>
+<script src="db_p4.js?v=ee601dbd"></script>
+<script src="db_p5.js?v=ee601dbd"></script>
+<script src="db_p6.js?v=ee601dbd"></script>
+<script src="db_p7.js?v=ee601dbd"></script>
+<script src="db_p8.js?v=ee601dbd"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -7557,12 +7558,13 @@ setTimeout(()=>{ try{
    матрица рисков 5×5, прогноз состояния ММГ, измерительная база,
    данные/аудит/интеграции, дорожная карта. Хранение — localStorage рабочего
    места (префикс chgrk_gs_*) + серверный журнал при подключённой центральной БД. */
-const GS_STORE={j:'chgrk_gs_journal_v1', snap:'chgrk_gs_snap_v1', road:'chgrk_gs_road_v1', sens:'chgrk_gs_sensors_v1', out:'chgrk_gs_outbox_v1', ntf:'chgrk_gs_notify_v1', duty:'chgrk_gs_duty_v1', sched:'chgrk_gs_sched_v1', done:'chgrk_gs_done_v1'};
+const GS_STORE={j:'chgrk_gs_journal_v1', snap:'chgrk_gs_snap_v1', road:'chgrk_gs_road_v1', sens:'chgrk_gs_sensors_v1', out:'chgrk_gs_outbox_v1', ntf:'chgrk_gs_notify_v1', duty:'chgrk_gs_duty_v1', sched:'chgrk_gs_sched_v1', done:'chgrk_gs_done_v1', pav:'chgrk_gs_pav_v1'};
 function gsLoad(k,dflt){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?dflt:v; }catch(e){ return dflt; } }
 function gsSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
 let gsJournal=gsLoad(GS_STORE.j,[]), gsRoad=gsLoad(GS_STORE.road,{}), gsSens=gsLoad(GS_STORE.sens,{}), gsCur=null, gsRemote=false;
 let gsNotify=gsLoad(GS_STORE.ntf,[]), gsDuty=gsLoad(GS_STORE.duty,{name:'',phone:'',tg:'',mail:''});
 let gsSchedCfg=gsLoad(GS_STORE.sched,{}), kiaDone=gsLoad(GS_STORE.done,[]);
+let gsPav=gsLoad(GS_STORE.pav,{});
 const GS_ROAD=[
  {g:'Этап А · 0–3 мес — доказательность данных', items:[
    {k:'A1', t:'Журнал тревог и эскалации переходов через контрольные критерии К1/К2 (локальный + серверный журнал — Центр управления ГТМ)', d0:'готово'},
@@ -7639,6 +7641,13 @@ function gsBadges(added){
   if(bS){ const t0=new Date(); t0.setHours(0,0,0,0);
     const soon=kiaSchedEff().map((sc,i)=>({i,t:kiaNext(sc)})).filter(r=>Math.round((r.t-t0)/864e5)<=7&&!kiaIsDone(r.i,kiaISO(r.t))).length;
     bS.style.display=soon?'':'none'; bS.textContent=soon; bS.classList.toggle('alarm',soon>0); }
+  const bP=document.getElementById('gsBdgP'); // прогресс готовности к паводку
+  if(bP){ let pp=0;
+    if(window.STOK){ const hp={}; STOK.objects.filter(s=>s.risk==='высокий').forEach(s=>{hp[s.pl||'(вне площадок)']=1;});
+      const tot=PAV_CHK.length+Object.keys(hp).length;
+      const dn=PAV_CHK.filter(it=>pavState(it.k)==='готово').length+Object.keys(hp).filter(k=>pavState('p_'+k)==='готово').length;
+      pp=tot?Math.round(100*dn/tot):0; }
+    bP.style.display=pp?'':'none'; bP.textContent=pp+'%'; }
   if(gsCur==='alerts'&&added>0) gsOpen('alerts',true);
 }
 function gsJournalSync(){
@@ -8190,8 +8199,56 @@ function stokExportXls(){
   a.download='Гидрологическая_оценка_объектов_ГТМ_ЧГРК_'+iso+'.xlsx';
   a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
 }
+/* --- готовность к паводку: чек-лист предпаводковых осмотров (ВСН 01-89) --- */
+const PAV_CHK=[
+ {k:'c1', t:'Осмотр и очистка водоотводных устройств (лотки, канавы, водоотводные трубы) от наносов, льда и наледей'},
+ {k:'c2', t:'Осмотр нагорных канав и водоотводящих сооружений, восстановление проектных сечений'},
+ {k:'c3', t:'Проверка водосбросных и водовыпускных устройств плотины (ш. 3301) и пруда-накопителя (ш. 3300), контроль отметок уровня'},
+ {k:'c4', t:'Осмотр гребня и откосов плотин, противоселевой плотины (ш. 12100) и руслоотводных сооружений (ш. 3100)'},
+ {k:'c5', t:'Проверка пропускной способности системы сбора карьерных и подотвальных вод (ш. 3200), исправность водоотливных установок'},
+ {k:'c6', t:'Осмотр отмосток, планировки и техподполий зданий и сооружений; устранение обратных уклонов и застойных зон'},
+ {k:'c7', t:'Контроль нефтеуловителей и ливневой канализации (склад ГСМ ш. 6200, очистные сооружения ш. 9100, 3304)'},
+ {k:'c8', t:'Осмотр автодорог: водоотводные трубы, кюветы и обочины в точках пересечения с расчётной гидросетью; наледные участки'},
+ {k:'c9', t:'Готовность водоотливной техники, ГСМ и материалов аварийной заделки (грунт, мешки, геотекстиль)'},
+ {k:'c10',t:'План паводковых мероприятий утверждён, дежурные назначены, канал связи с дежурным метеоконтролем проверен'}
+];
+function pavState(k){ const r=gsPav[k]; return (r&&r.v)||'план'; }
+function gsViewPav(){
+  const S=window.STOK;
+  const opts=v=>['план','в работе','готово'].map(s=>`<option ${s===v?'selected':''}>${s}</option>`).join('');
+  const col={'план':'#8a8a8a','в работе':'#e08a00','готово':'#2e7d32'};
+  const hiPads={};
+  if(S) S.objects.filter(s=>s.risk==='высокий').forEach(s=>{ const k=s.pl||'(вне площадок)'; (hiPads[k]=hiPads[k]||[]).push(s); });
+  const pKeys=Object.keys(hiPads).sort((a,b)=>Math.max.apply(null,hiPads[b].map(s=>s.catch_near_km2))-Math.max.apply(null,hiPads[a].map(s=>s.catch_near_km2)));
+  const doneC=PAV_CHK.filter(it=>pavState(it.k)==='готово').length;
+  const doneP=pKeys.filter(k=>pavState('p_'+k)==='готово').length;
+  const total=PAV_CHK.length+pKeys.length, done=doneC+doneP;
+  const pct=total?Math.round(100*done/total):0;
+  const rowsC=PAV_CHK.map(it=>{
+    const v=pavState(it.k), r=gsPav[it.k];
+    return `<div style="border-top:1px dashed var(--line); padding:6px 0; display:flex; gap:8px; align-items:flex-start">
+      <span class="gsPill" style="background:${col[v]}; min-width:34px; text-align:center">${it.k.toUpperCase()}</span>
+      <div style="flex:1; font-size:12px">${it.t}${r&&r.ts?` <span class="mut">— отмечено ${new Date(r.ts).toLocaleDateString('ru-RU')}</span>`:''}</div>
+      <select class="gsSt" data-pvk="${it.k}">${opts(v)}</select></div>`;
+  }).join('');
+  const rowsP=pKeys.map(k=>{
+    const ms=hiPads[k], v=pavState('p_'+k), r=gsPav['p_'+k];
+    const objs=ms.map(st=>{ const i=DB.objects.findIndex(o=>o.id===st.id); return i>=0?`<a href="#" data-gsobj="${i}" style="color:var(--c-centr)">${esc(st.name)}</a>`:esc(st.name); }).join(' · ');
+    return `<div style="border-top:1px dashed var(--line); padding:6px 0; display:flex; gap:8px; align-items:flex-start">
+      <span class="gsPill" style="background:${col[v]}; min-width:34px; text-align:center">${ms.length}</span>
+      <div style="flex:1; font-size:12px"><b>${esc(k)}</b> — объектов категории «высокий»: ${ms.length}, макс. водосбор ${Math.max.apply(null,ms.map(s=>s.catch_near_km2)).toFixed(2)} км²<br><span class="mut">${objs}</span>${r&&r.ts?` <span class="mut">— отмечено ${new Date(r.ts).toLocaleDateString('ru-RU')}</span>`:''}</div>
+      <select class="gsSt" data-pvp="${esc(k)}">${opts(v)}</select></div>`;
+  }).join('');
+  return `<h2>🛡 Готовность к паводку <span class="mut" style="font-size:12px;font-weight:400">(предпаводковые осмотры, ВСН 01-89)</span></h2>
+  <div class="gsCard"><h3>Готовность сезона: ${pct}%</h3><div class="gsBar"><i style="width:${pct}%"></i></div>
+    <div class="mut">Чек-лист мероприятий: ${doneC} из ${PAV_CHK.length} · осмотры площадок категории «высокий»: ${doneP} из ${pKeys.length}. Статусы сохраняются локально в этом браузере. Перед новым паводковым сезоном — сброс отметок: <button class="wbtn" data-pvreset style="font-size:12px">↺ Новый сезон (сброс)</button></div></div>
+  <div class="gsCard"><h3>Чек-лист предпаводковых мероприятий (ВСН 01-89)</h3>${rowsC}</div>
+  <div class="gsCard"><h3>Осмотры площадок с объектами категории «высокий» (${pKeys.length})</h3>
+    ${rowsP||'<div class="mut">Данные модели стока не загружены.</div>'}
+    <div class="mut" style="margin-top:4px">Состав площадок и категории риска — по скрининговой модели поверхностного стока (ЦМР Copernicus GLO-30); перечень уточняется после полевой верификации. Методическая база: ВСН 01-89 (предпаводковые осмотры), СП 116.13330 (производственный контроль), СП 25.13330.2020 (защита оснований на ММГ от увлажнения).</div></div>`;
+}
 /* --- диспетчер --- */
-const GS_VIEWS={alerts:gsViewAlerts, risk:gsViewRisk, prog:gsViewProg, sensors:gsViewSensors, data:gsViewData, road:gsViewRoad, sched:gsViewSched, stok:gsViewStok};
+const GS_VIEWS={alerts:gsViewAlerts, risk:gsViewRisk, prog:gsViewProg, sensors:gsViewSensors, data:gsViewData, road:gsViewRoad, sched:gsViewSched, stok:gsViewStok, pav:gsViewPav};
 function gsBindCommon(){
   const d=document.getElementById('gsModalBody');
   d.querySelectorAll('[data-gsobj]').forEach(el=>el.addEventListener('click',ev=>{ ev.preventDefault(); select(+el.dataset.gsobj); }));
@@ -8214,6 +8271,9 @@ function gsBindCommon(){
   const fG=document.getElementById('stokFG'); if(fG) fG.onchange=()=>{ stokFG=fG.value; gsOpen('stok',true); };
   const fR=document.getElementById('stokFR'); if(fR) fR.onchange=()=>{ stokFR=fR.value; gsOpen('stok',true); };
   const bX=document.getElementById('stokXls'); if(bX) bX.onclick=()=>stokExportXls();
+  d.querySelectorAll('select.gsSt[data-pvk]').forEach(el=>el.addEventListener('change',()=>{ gsPav[el.dataset.pvk]={v:el.value,ts:new Date().toISOString()}; gsSave(GS_STORE.pav,gsPav); gsBadges(0); gsOpen('pav',true); }));
+  d.querySelectorAll('select.gsSt[data-pvp]').forEach(el=>el.addEventListener('change',()=>{ gsPav['p_'+el.dataset.pvp]={v:el.value,ts:new Date().toISOString()}; gsSave(GS_STORE.pav,gsPav); gsBadges(0); gsOpen('pav',true); }));
+  const pR=d.querySelector('[data-pvreset]'); if(pR) pR.addEventListener('click',()=>{ if(confirm('Сбросить все отметки готовности к паводку (начать новый сезон)?')){ gsPav={}; gsSave(GS_STORE.pav,gsPav); gsBadges(0); gsOpen('pav',true); } });
   const dE=document.getElementById('gsDutyEdit'); if(dE) dE.onclick=()=>{ const f=document.getElementById('gsDutyForm'); if(f) f.style.display=(f.style.display==='none'||!f.style.display)?'':'none'; };
   const dS=document.getElementById('gsDutySave'); if(dS) dS.onclick=()=>{ gsDuty={name:document.getElementById('gsDutyName').value.trim(), phone:document.getElementById('gsDutyPhone').value.trim(), tg:document.getElementById('gsDutyTg').value.trim().replace(/^@/,''), mail:document.getElementById('gsDutyMail').value.trim()}; gsSave(GS_STORE.duty,gsDuty); gsOpen('alerts',true); };
   d.querySelectorAll('[data-gsack]').forEach(el=>el.addEventListener('click',()=>gsAckNtf(el.dataset.gsack)));
@@ -8301,8 +8361,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"uCvhUfwwqKcF8FR3qI15iQ==",ivV:"NEKdRRkTyHKVRDrC",wrapV:"6td3g8LMy5Gq/v6lyxYl5mpybEnpZs5Jfk/XXUk4iOlfHOd5KCQKsdLzxbzMEi+P",saltE:"seWBAWpb0hhnEEBvIzUNzA==",ivE:"9Jc3XIfRi/77hXra",wrapE:"oy0yKm7c5+P9zBQZufBV+eWSTOq4BIWjeKP/+LahNBGTQjqPvzH0pKNdVUlaTo2R",ivD:"cH7xoQD8ubGoxTLT"};
-const BUILD="3fa3827e";
+const ENC={saltV:"AtIN8NAW5X3/9J+WldPMIA==",ivV:"bRJb+v1H5Fr9o99E",wrapV:"BjRGTf78M07rL7EIY7rprzGS/RxYvBu1l+C3Jm9M5Lq0qciE9a1gSSSbD7Z3LZdE",saltE:"KG9VxZPRdQRDxmj7QFrOdA==",ivE:"+OVa8MoOytRPWVxz",wrapE:"pa3yE4f6GOTaVR7/G4ryfHWbmpFKUhAEHMoVkMC4YwYwulufsL1n1+8MU/chXg0X",ivD:"ptz7geaejxtjr/jX"};
+const BUILD="ee601dbd";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
