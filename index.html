@@ -12,6 +12,8 @@
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/pdfmake.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.2.10/vfs_fonts.js"></script>
 <script src="https://unpkg.com/docx@8.5.0/build/index.umd.js"></script>
 <style>
   :root{
@@ -774,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=ee601dbd"></script>
-<script src="db_p2.js?v=ee601dbd"></script>
-<script src="db_p3.js?v=ee601dbd"></script>
-<script src="db_p4.js?v=ee601dbd"></script>
-<script src="db_p5.js?v=ee601dbd"></script>
-<script src="db_p6.js?v=ee601dbd"></script>
-<script src="db_p7.js?v=ee601dbd"></script>
-<script src="db_p8.js?v=ee601dbd"></script>
+<script src="db_p1.js?v=3e037194"></script>
+<script src="db_p2.js?v=3e037194"></script>
+<script src="db_p3.js?v=3e037194"></script>
+<script src="db_p4.js?v=3e037194"></script>
+<script src="db_p5.js?v=3e037194"></script>
+<script src="db_p6.js?v=3e037194"></script>
+<script src="db_p7.js?v=3e037194"></script>
+<script src="db_p8.js?v=3e037194"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -4762,7 +4764,8 @@ regModal.addEventListener('click',e=>{ if(e.target===regModal) regModal.style.di
 /* ---------- нормативная документация ---------- */
 const NTD_LIST=[{"g":"Федеральные законы и кодексы","items":[{"d":"ГрК РФ от 29.12.2004 № 190-ФЗ","n":"Градостроительный кодекс Российской Федерации","st":"ok","note":"Основание организации мониторинга оснований и конструкций при строительстве и эксплуатации (ст. 53, 55.24); обязательность инженерных изысканий."},{"d":"ФЗ от 30.12.2009 № 384-ФЗ","n":"Технический регламент о безопасности зданий и сооружений","st":"ok","note":"Обязательные требования безопасности зданий и сооружений, в т.ч. возводимых на многолетнемёрзлых грунтах."},{"d":"ФЗ от 10.01.2002 № 7-ФЗ","n":"Об охране окружающей среды","st":"ok","note":"С изм. ФЗ-297 от 10.07.2023: состояние и деградация ММГ, фоновый государственный мониторинг мерзлоты."},{"d":"ФЗ от 26.12.2008 № 431-ФЗ","n":"О геодезии, картографии и пространственных данных","st":"ok","note":"Геодезическая основа наблюдений за деформациями; системы координат и высот."},{"d":"ВК РФ от 03.06.2006 № 74-ФЗ","n":"Водный кодекс Российской Федерации","st":"ok","note":"Применим к водоотводным каналам и плотине площадки; охрана водных объектов."}]},{"g":"Постановления Правительства РФ","items":[{"d":"ПП РФ от 16.02.2008 № 87","n":"Состав разделов проектной документации и требования к их содержанию","st":"ok","note":"Структура ПД 142-04-03-000-01; раздел инженерных изысканий."},{"d":"ПП РФ от 19.01.2006 № 20","n":"Инженерные изыскания для подготовки проектной документации, строительства, реконструкции объектов капитального строительства","st":"ok","note":"Состав и требования к изысканиям площадки ЧГОК."},{"d":"ПП РФ от 28.05.2021 № 815","n":"Перечень документов, в результате применения которых обеспечивается соблюдение ФЗ-384","st":"ok","note":"Статус применения СП и ГОСТ при проектировании и мониторинге."}]},{"g":"Геотехнический мониторинг и обследование (ядро задания на ГТМ ЧГОК)","items":[{"d":"СП 305.1325800.2017","n":"Геотехнический мониторинг при строительстве зданий и сооружений","st":"ok","note":"Базовый документ: состав и периодичность наблюдений, контролируемые параметры (послойные деформации, поровое давление, инклинометрия, температурный режим ММГ, гидрогеология, перемещения фундаментов)."},{"d":"ГОСТ 31937-2024","n":"Здания и сооружения. Правила обследования и мониторинга технического состояния","st":"ok","note":"Категории технического состояния; состав паспорта объекта мониторинга."},{"d":"ГОСТ 24846-2019","n":"Грунты. Методы измерения деформаций оснований зданий и сооружений","st":"ok","note":"Осадки, крены, плановые смещения по маркам и реперам."},{"d":"ГОСТ 25358-2020","n":"Грунты. Методы полевых измерений температуры","st":"ok","note":"Термометрия скважин; ведомость — прил. В."},{"d":"ГОСТ 27751-2014","n":"Надёжность строительных конструкций и оснований. Основные положения","st":"ok","note":"Уровни ответственности и предельные состояния."},{"d":"Приказ Минстроя России от 16.11.2021 № 783/пр","n":"Установление электронного вида документов по мониторингу","st":"ok","note":"Формы ведения сведений мониторинга в электронном виде."}]},{"g":"Основания, мерзлота и изыскания","items":[{"d":"СП 22.13330.2016","n":"Основания зданий и сооружений","st":"ok","note":"Актуализация СНиП 2.02.01-83*."},{"d":"СП 25.13330.2020","n":"Основания и фундаменты на вечномерзлых грунтах","st":"ok","note":"С Изм. № 1–3; прил. Г — климатические параметры, НГК; принципы использования мерзлоты I/II."},{"d":"СП 493.1325800.2020","n":"Инженерно-геокриологические изыскания для строительства","st":"ok","note":"Состав изысканий на ММГ; отчёты ИнжГео 2021 по площадке ЧГОК."},{"d":"СП 446.1325800.2019","n":"Инженерно-геологические изыскания для строительства","st":"ok","note":"Производство инженерно-геологических работ."},{"d":"СП 47.13330.2016","n":"Инженерные изыскания для строительства. Основные положения","st":"ok","note":"Общие требования к изысканиям."},{"d":"СП 317.1325800.2017","n":"Инженерно-геодезические изыскания для строительства","st":"ok","note":"Геодезическая основа наблюдений, реперы."},{"d":"СП 131.13330.2025","n":"Строительная климатология","st":"ok","note":"Действует с 09.09.2025; заменил СП 131.13330.2020. Климат площадки: tср.год −9,8 °C, осадки 561–838 мм."},{"d":"СП 20.13330.2016","n":"Нагрузки и воздействия","st":"ok","note":"Снеговые и ветровые нагрузки района."},{"d":"СП 14.13330.2018","n":"Строительство в сейсмических районах","st":"ok","note":"Сейсмичность площадки 5 баллов (MSK-64, повторяемость 1/1000 лет)."},{"d":"СП 115.13330.2016","n":"Здания и сооружения на подрабатываемых территориях и просадочных грунтах","st":"ok","note":"Применим к участкам с просадочными и органическими грунтами."},{"d":"СП 116.13330.2012","n":"Инженерная защита территорий, зданий и сооружений от опасных геологических процессов","st":"ok","note":"Термокарст, термоэрозия, морозное пучение (группа ТБ/ИЗ)."},{"d":"СП 45.13330.2017","n":"Земляные сооружения, основания и фундаменты","st":"ok","note":"Насыпи, земляное полотно автодорог (АД № 12 и др.)."},{"d":"СП 48.13330.2019","n":"Организация строительства","st":"ok","note":"Организация наблюдений в период строительства."},{"d":"ГОСТ 25100-2020","n":"Грунты. Классификация","st":"ok","note":"Классификация грунтов оснований."},{"d":"ГОСТ 12248 (серия)","n":"Грунты. Методы лабораторных испытаний","st":"ok","note":"Прочностные и деформационные характеристики грунтов."},{"d":"ГОСТ 22733-2014 / ГОСТ 8735-88","n":"Плотность грунтов / песок для строительных работ","st":"ok","note":"Контроль уплотнения насыпей."},{"d":"ВСН 01-89","n":"Предприятия по эксплуатации зданий и сооружений на вечной мерзлоте","st":"ok","note":"Мерзлотно-технический надзор; журналы; периодичность обходов."},{"d":"СТО 44577806.14.24-1-69-2013","n":"Нагрузки и воздействия на здания и сооружения Норильского промышленного района","st":"ok","note":"Корпоративный стандарт; территория применения включает площадку ЧГОК."}]},{"g":"ГТС площадки (специальный блок: плотина ш. 3301, каналы)","items":[{"d":"ФЗ от 21.07.1997 № 117-ФЗ","n":"О безопасности гидротехнических сооружений","st":"ok","note":"Применим при постановке ГТС площадки на учёт в Российском регистре ГТС."},{"d":"ПП РФ от 30.06.2021 № 1080","n":"О федеральном государственном надзоре в области безопасности ГТС","st":"ok","note":"Порядок госнадзора (Ростехнадзор)."},{"d":"ФНП (приказ Ростехнадзора от 08.05.2024 № 151)","n":"Требования к обеспечению безопасности ГТС","st":"ok","note":"Контроль показателей состояния ГТС; действия при критериях К1/К2."},{"d":"СП 58.13330.2019","n":"Гидротехнические сооружения. Основные положения","st":"ok","note":"Актуализация СНиП 3.07.01-85."},{"d":"СП 39.13330.2012","n":"Плотины из грунтовых материалов","st":"ok","note":"Плотина ш. 3301 (грунтовая)."},{"d":"СП 38.13330.2018","n":"Нагрузки и воздействия на гидротехнические сооружения","st":"ok","note":"Волновые, ледовые, гидростатические воздействия."},{"d":"СП 23.13330.2018","n":"Основания гидротехнических сооружений","st":"ok","note":"Основания плотины и каналов."}]},{"g":"Проектная и рабочая документация Черногорского ГОК","items":[{"d":"Задание от 25.12.2023","n":"Задание на выполнение геотехнического мониторинга Черногорского ГОК","st":"ok","note":"Контролируемые параметры и объекты ГТМ (шифры 2104, 2303, 4100, 4200, 9100, 10208, 10209, 10502)."},{"d":"ПД 142-04-03-000-01","n":"Проектная документация «Черногорский ГОК». Том 1.1.1 — пояснительная записка","st":"ok","note":"Номенклатура объектов площадки (211 объектов, 10 групп); ЗУ 24:55:0500001:695."},{"d":"РД 27.2.21.8-ЧГРК01308-ЗПТ","n":"Рабочая документация «Тело насыпи автодороги № 12»","st":"ok","note":"Объект ГТМ 10208 (насыпь, 1100 п.м)."}]},{"g":"Не действуют (отменённые / заменённые редакции)","items":[{"d":"СНиП 2.02.04-88","n":"Основания и фундаменты на вечномерзлых грунтах","st":"off","note":"Заменён СП 25.13330.2020."},{"d":"СНиП 2.02.01-83*","n":"Основания зданий и сооружений","st":"off","note":"Заменён СП 22.13330.2016."},{"d":"СП 131.13330.2020","n":"Строительная климатология","st":"off","note":"Заменён СП 131.13330.2025 с 09.09.2025."},{"d":"ГОСТ 31937-2011","n":"Здания и сооружения. Правила обследования и мониторинга технического состояния","st":"off","note":"Заменён ГОСТ 31937-2024."},{"d":"ГОСТ Р 53778-2010","n":"Здания и сооружения. Правила обследования и мониторинга технического состояния","st":"off","note":"Отменён; преемник — ГОСТ 31937."},{"d":"ПБ 03-438-02","n":"Правила безопасности ГТС накопителей промышленных отходов","st":"off","note":"Отменены ПП РФ от 22.07.2020 № 1086."}]}];
 NTD_LIST.push({"g":"Формы и памятки системы ГТМ ЧГРК (внутренние документы)","items":[
-{"d":"Памятка КИА","n":"Памятка наблюдателя КИА — правила заполнения, периодичность и порядок передачи журналов замеров; действия при тревоге ливневого притока","st":"ok","note":"Введена 14.09.2026, ред. 15.09.2026 — добавлен раздел «Тревога ливневого притока (гидрологический риск)». Обязательна для наблюдателей и подрядных организаций, выполняющих замеры.","href":"Журналы_КИА/Памятка_наблюдателя_КИА.pdf"},
+{"d":"Памятка КИА","n":"Памятка наблюдателя КИА — правила заполнения, периодичность и порядок передачи журналов замеров; действия при тревоге ливневого притока","st":"ok","note":"Введена 14.09.2026, ред. 15.09.2026 — добавлен раздел «Тревога ливневого притока (гидрологический риск)»; ред. 16.09.2026 — правило сезонности стока. Обязательна для наблюдателей и подрядных организаций, выполняющих замеры.","href":"Журналы_КИА/Памятка_наблюдателя_КИА.pdf"},
+{"d":"Приложение по гидрологии","n":"Программа ГТМ — приложение по гидрологии: сводная оценка поверхностного стока по 202 объектам и 20 площадкам, карты модели стока (PDF, 30 л., альбомная)","st":"ok","note":"Сформировано 15.09.2026 по модели стока (ЦМР Copernicus GLO-30, скрининг); пересобирается при обновлении модели. Для производственного контроля и приложения к программе ГТМ.","href":"Приложение_гидрология_программа_ГТМ.pdf"},
 {"d":"Форма ЖТ-2101","n":"Журнал термометрии 2101 ККД (подпорная стена): скв. ПС-1…ПС-5, ПС-7, ПС-нов; глубины 0–20 м","st":"ok","note":"Заполняемая форма под автозагрузку; шифры скважин предзаполнены.","href":"Журналы_КИА/Журнал_термометрии_2101_ККД.xlsx"},
 {"d":"Форма ЖД-2101","n":"Журнал деформаций 2101 ККД — 51 марка; осадка от исходных отметок считается автоматически","st":"ok","note":"Заполняемая форма; марки и исходные отметки предзаполнены.","href":"Журналы_КИА/Журнал_деформаций_2101_ККД.xlsx"},
 {"d":"Форма ЖД-2102","n":"Журнал деформаций 2102 Галерея ККД–СКДР — 14 марок","st":"ok","note":"Заполняемая форма; марки и исходные отметки предзаполнены.","href":"Журналы_КИА/Журнал_деформаций_2102_Галерея.xlsx"},
@@ -4917,7 +4920,7 @@ const W_IMPACT={
 function wCache(){ try{ return JSON.parse(localStorage.getItem('gtm_warn')||'null'); }catch(e){ return null; } }
 async function warnFetch(){
   const url='https://api.open-meteo.com/v1/forecast?latitude='+W_PTS.map(p=>p.lat).join(',')+'&longitude='+W_PTS.map(p=>p.lon).join(',')
-    +'&hourly=temperature_2m,rain,snowfall,weather_code,wind_gusts_10m,wind_speed_10m,snow_depth,soil_temperature_0_to_7cm&wind_speed_unit=ms&forecast_days=10&timezone=Asia%2FKrasnoyarsk';
+    +'&hourly=temperature_2m,rain,showers,snowfall,weather_code,wind_gusts_10m,wind_speed_10m,snow_depth,soil_temperature_0_to_7cm&wind_speed_unit=ms&forecast_days=10&timezone=Asia%2FKrasnoyarsk';
   const r=await fetch(url); const j=await r.json();
   const d={ts:Date.now(), pts:Array.isArray(j)?j:[j]};
   try{ localStorage.setItem('gtm_warn',JSON.stringify(d)); }catch(e){}
@@ -5089,11 +5092,21 @@ function procHtml(d){
       h+='</div>';
     });
   });
-  h+='<div class="warn-meta" style="margin-top:6px">Модели: снеготаяние — степень-часовая (≈0,35 мм/°C·ч при наличии покрова); сток на ММГ — k = 0,9 при t грунта (0–7 см) ≤ −0,5 °C (инфильтрация отсутствует), 0,6/0,4 при переходном/протаявшем; метелевый перенос — от средней скорости ≥ 5 м/с, усиление при свежем снеге и t ≤ −10 °C; наледь — рост при устойчивом морозе после поступления влаги за 7 сут, ускорение при переходе «оттепель → мороз ≤ −8 °C»; freeze-thaw — смены знака t при наличии влаги. Перечень скачиваемых метеоданных расширен: температура и осадки (дождь/снег), код погоды, порывы и СРЕДНЯЯ скорость ветра, высота снежного покрова, температура грунта 0–7 см — почасово на 10 суток.</div>';
+  h+='<div class="warn-meta" style="margin-top:6px">Модели: снеготаяние — степень-часовая (≈0,35 мм/°C·ч при наличии покрова); сток на ММГ — k = 0,9 при t грунта (0–7 см) ≤ −0,5 °C (инфильтрация отсутствует), 0,6/0,4 при переходном/протаявшем; метелевый перенос — от средней скорости ≥ 5 м/с, усиление при свежем снеге и t ≤ −10 °C; наледь — рост при устойчивом морозе после поступления влаги за 7 сут, ускорение при переходе «оттепель → мороз ≤ −8 °C»; freeze-thaw — смены знака t при наличии влаги. Перечень скачиваемых метеоданных: температура и осадки (дождь, ЛИВНИ, снег — раздельно по фазе), код погоды, порывы и СРЕДНЯЯ скорость ветра, высота снежного покрова, температура грунта 0–7 см — почасово на 10 суток. Сезонное правило для событий стока и паводка: они возможны только при физическом наличии талой/дождевой воды — переходы t через 0 °C (весна, осень) и тёплый сезон; при устойчивом морозе (вся декада ≤ 0 °C) сток и гидрологические тревоги методологически исключены.</div>';
   h+='</div>';
   return h;
 }
 /* --- ливневый приток к объектам (водный баланс прогноза × водосборы модели стока ЦМР) --- */
+/* Методологический гейт сезонности: тревоги стока возможны только когда физически образуется талая/дождевая вода —
+   переходы через 0 °C (весна/осень, снеготаяние) и тёплый сезон (дожди, ливни); при устойчивом морозе сток отсутствует. */
+function stokSeason(days){
+  if(!days.length) return 'unknown';
+  const maxT=Math.max.apply(null,days.map(x=>x.tmax));
+  if(maxT<=0) return 'frost'; // устойчивый мороз на весь прогноз: талая вода не образуется — сток и тревоги невозможны
+  const minT=Math.min.apply(null,days.map(x=>x.tmin));
+  if(minT>0) return 'warm';   // тёплый сезон: сток от дождей и ливней
+  return 'transition';        // переходы через 0 °C: снеготаяние/замерзание — весенне-осенний режим
+}
 function stokInflowScan(d){
   const res=[];
   (d.pts||[]).forEach((pt,pi)=>{
@@ -5103,9 +5116,11 @@ function stokInflowScan(d){
     for(let i=0;i<H.time.length;i++){
       const t=+H.temperature_2m[i]; if(isNaN(t)) continue;
       const key=H.time[i].slice(0,10);
-      let a=days[key]; if(!a){ a=days[key]={date:key,rain:0,dh:0,depth:0,soil:0,soilN:0}; order.push(key); }
-      a.rain+=H.rain?(+H.rain[i]||0):0;
+      let a=days[key]; if(!a){ a=days[key]={date:key,rain:0,dh:0,depth:0,soil:0,soilN:0,tmax:t,tmin:t}; order.push(key); }
+      const rr=(H.rain?(+H.rain[i]||0):0)+(H.showers?(+H.showers[i]||0):0);
+      if(t>0) a.rain+=rr; // жидкие осадки — только при t воздуха > 0 °C (дождь при морозе → гололёд, стока не даёт)
       if(t>0)a.dh+=t;
+      if(t>a.tmax)a.tmax=t; if(t<a.tmin)a.tmin=t;
       const dep=H.snow_depth?+H.snow_depth[i]:NaN; if(!isNaN(dep)) a.depth=dep*100;
       const st2=H.soil_temperature_0_to_7cm?+H.soil_temperature_0_to_7cm[i]:NaN;
       if(!isNaN(st2)){ a.soil+=st2; a.soilN++; }
@@ -5116,9 +5131,11 @@ function stokInflowScan(d){
       const melt=(a.depth>0&&a.dh>0)?Math.min(a.dh*0.35,a.depth*3):0;
       const k=soil==null?0.6:(soil<=-0.5?0.9:(soil<=2?0.6:0.4));
       let runoff=(a.rain+melt)*k; if(a.rain>0&&a.depth>0) runoff*=1.15;
-      return {date:key, rain:a.rain, melt, k, runoff};
+      return {date:key, rain:a.rain, melt, k, runoff, tmax:a.tmax, tmin:a.tmin};
     });
-    res.push({pi, nm:meta.nm, lat:meta.lat, lon:meta.lon, days:arr});
+    const season=stokSeason(arr);
+    if(season==='frost') arr.forEach(x=>{ x.runoff=0; x.melt=0; x.rain=0; }); // устойчивый мороз — сток исключён методологически
+    res.push({pi, nm:meta.nm, lat:meta.lat, lon:meta.lon, days:arr, season});
   });
   return res;
 }
@@ -5128,7 +5145,11 @@ function stokInflowHtml(d){
   const STM={}; S.objects.forEach(s=>STM[s.id]=s);
   const hav=(la1,lo1,la2,lo2)=>{const r=Math.PI/180,dx=(lo2-lo1)*Math.cos(r*(la1+la2)/2),dy=la2-la1;return Math.hypot(dx,dy);};
   const rc={'низкий':'#2e7d32','средний':'#ef9a1a','высокий':'#c62828'};
-  let h='<div style="margin-top:10px; border-top:2px solid var(--line); padding-top:8px"><b style="font-size:13px">🌊 Ливневый приток к объектам на 10 суток</b> <span class="note">— суточный сток (дождь + снеготаяние, k по t грунта) × водосбор из модели ЦМР (раздел «🌊 Модель стока» Центра контроля); 1 мм стока с 1 км² = 1 000 м³. Водосборы объектов могут частично перекрываться — объёмы не суммируются между объектами</span>';
+  const SEASON_TXT={frost:'устойчивый мороз — сток невозможен',warm:'тёплый сезон — сток от дождей и ливней',transition:'переходы через 0 °C — снеготаяние',unknown:'нет данных'};
+  let h='<div style="margin-top:10px; border-top:2px solid var(--line); padding-top:8px"><b style="font-size:13px">🌊 Ливневый приток к объектам на 10 суток</b> <span class="note">— суточный сток (дождь и ливни при t > 0 °C + снеготаяние, k по t грунта) × водосбор из модели ЦМР (раздел «🌊 Модель стока» Центра контроля); 1 мм стока с 1 км² = 1 000 м³. Водосборы объектов могут частично перекрываться — объёмы не суммируются между объектами. Тревоги действуют только в период физической возможности стока (переходы через 0 °C весной/осенью, дожди и ливни тёплого сезона)</span>';
+  if(scan.every(pt=>pt.season==='frost')){
+    return h+'<div class="warn-none" style="margin-top:4px">❄ На все прогнозные 10 суток — устойчивый мороз (дневной максимум ≤ 0 °C): талая вода физически не образуется, поверхностный сток отсутствует. Гидрологические тревоги методологически отключены до переходов температуры через 0 °C.</div></div>';
+  }
   scan.forEach(pt=>{
     const objs=DB.objects.map(o=>{
       const st=STM[o.id]; if(!st||typeof o.lat!=='number') return null;
@@ -5140,7 +5161,7 @@ function stokInflowHtml(d){
     }).filter(Boolean).sort((a,b)=>b.v-a.v);
     if(!objs.length) return;
     const bigDays=pt.days.filter(x=>x.runoff>=12);
-    h+='<div style="margin-top:6px; font-size:12px; color:var(--mut)">Точка прогноза: <b>'+esc(pt.nm)+'</b>'
+    h+='<div style="margin-top:6px; font-size:12px; color:var(--mut)">Точка прогноза: <b>'+esc(pt.nm)+'</b> · сезонный режим: <b>'+SEASON_TXT[pt.season||'unknown']+'</b>'
       +(bigDays.length?(' · сутки со стоком ≥ 12 мм: <b style="color:#c62828">'+bigDays.map(x=>x.date.split('-').reverse().join('.')+' ('+x.runoff.toFixed(0)+' мм)').join(', ')+'</b>'):' · суток со стоком ≥ 12 мм не прогнозируется')+'</div>';
     const show=objs.slice(0,15), rest=objs.length-show.length;
     if(objs[0].v<250){ h+='<div class="warn-none" style="margin-top:4px">✔ Значимого притока к объектам (≥ 250 м³/сут) по прогнозу не ожидается — максимум ≈ '+objs[0].v+' м³/сут ('+esc(objs[0].o.a)+').</div>'; return; }
@@ -5156,7 +5177,7 @@ function stokInflowHtml(d){
     const hot=objs.filter(x=>x.v>=5000);
     if(hot.length) h+='<div class="wg" style="margin-top:4px"><b>Меры при реализации пиковых суток:</b> '+hot.slice(0,8).map(x=>esc(x.o.a)+' (≈'+(x.v/1000).toFixed(1)+' тыс. м³/сут)').join('; ')+(hot.length>8?'; и ещё '+(hot.length-8)+' объекта(ов)':'')+' — усиленный контроль уровня пруда-накопителя (ш. 3300) и водоотводных трактов, готовность водосброса/откачки, внеочередной осмотр нагорных канав и лотков (ВСН 01-89).</div>';
   });
-  h+='<div class="note" style="margin-top:4px">* для каждого объекта взяты его ближайшая точка прогноза и её пиковые сутки стока; сток по той же модели, что и вероятность подтопления выше (дождь + степень-часовое таяние, k = 0,9 мёрзлый / 0,6 переходный / 0,4 протаявший грунт, ×1,15 при дожде по снежному покрову). Скрининговая оценка — не заменяет расчёт максимального стока по СП 33.101-2003.</div></div>';
+  h+='<div class="note" style="margin-top:4px">* для каждого объекта взяты его ближайшая точка прогноза и её пиковые сутки стока; сток по той же модели, что и вероятность подтопления выше (дождь и ливни + степень-часовое таяние, k = 0,9 мёрзлый / 0,6 переходный / 0,4 протаявший грунт, ×1,15 при дожде по снежному покрову). Сезонный гейт (методологическое правило): тревоги формируются только при физической возможности стока — переходы температуры через 0 °C (снеготаяние весной и осенью) и тёплый сезон (дожди, ливни); при устойчивом морозе на весь прогнозный срок сток исключён. Осадки учитываются раздельно по фазе: дождь и ливни — только при t воздуха > 0 °C (дождь при морозе — гололёд, не сток), снег — только через снеготаяние при наличии покрова. Скрининговая оценка — не заменяет расчёт максимального стока по СП 33.101-2003.</div></div>';
   return h;
 }
 /* --- автотревога по ливневому притоку — журнал Центра контроля + уведомление дежурному --- */
@@ -8239,13 +8260,68 @@ function gsViewPav(){
       <div style="flex:1; font-size:12px"><b>${esc(k)}</b> — объектов категории «высокий»: ${ms.length}, макс. водосбор ${Math.max.apply(null,ms.map(s=>s.catch_near_km2)).toFixed(2)} км²<br><span class="mut">${objs}</span>${r&&r.ts?` <span class="mut">— отмечено ${new Date(r.ts).toLocaleDateString('ru-RU')}</span>`:''}</div>
       <select class="gsSt" data-pvp="${esc(k)}">${opts(v)}</select></div>`;
   }).join('');
+  const kom=gsPav._kom||{};
+  const komDt=kom.dt||new Date().toISOString().slice(0,10);
+  const inSt='border:1px solid var(--line); border-radius:4px; padding:3px 7px; font-size:12px; background:var(--bg); color:var(--txt)';
   return `<h2>🛡 Готовность к паводку <span class="mut" style="font-size:12px;font-weight:400">(предпаводковые осмотры, ВСН 01-89)</span></h2>
   <div class="gsCard"><h3>Готовность сезона: ${pct}%</h3><div class="gsBar"><i style="width:${pct}%"></i></div>
-    <div class="mut">Чек-лист мероприятий: ${doneC} из ${PAV_CHK.length} · осмотры площадок категории «высокий»: ${doneP} из ${pKeys.length}. Статусы сохраняются локально в этом браузере. Перед новым паводковым сезоном — сброс отметок: <button class="wbtn" data-pvreset style="font-size:12px">↺ Новый сезон (сброс)</button></div></div>
+    <div class="mut">Чек-лист мероприятий: ${doneC} из ${PAV_CHK.length} · осмотры площадок категории «высокий»: ${doneP} из ${pKeys.length}. Статусы сохраняются локально в этом браузере. Перед новым паводковым сезоном — сброс отметок: <button class="wbtn" data-pvreset style="font-size:12px">↺ Новый сезон (сброс)</button></div>
+    <div class="mut" style="margin-top:4px">Период возможного паводка определяется метеоданными, а не календарём: переходы температуры через 0 °C весной (снеготаяние), дожди и ливни тёплого сезона, осень — до начала устойчивых морозов. При устойчивом морозе талая вода физически отсутствует — гидрологические тревоги метеоконтроля отключены (правило закреплено в методологии прогноза).</div></div>
   <div class="gsCard"><h3>Чек-лист предпаводковых мероприятий (ВСН 01-89)</h3>${rowsC}</div>
   <div class="gsCard"><h3>Осмотры площадок с объектами категории «высокий» (${pKeys.length})</h3>
     ${rowsP||'<div class="mut">Данные модели стока не загружены.</div>'}
-    <div class="mut" style="margin-top:4px">Состав площадок и категории риска — по скрининговой модели поверхностного стока (ЦМР Copernicus GLO-30); перечень уточняется после полевой верификации. Методическая база: ВСН 01-89 (предпаводковые осмотры), СП 116.13330 (производственный контроль), СП 25.13330.2020 (защита оснований на ММГ от увлажнения).</div></div>`;
+    <div class="mut" style="margin-top:4px">Состав площадок и категории риска — по скрининговой модели поверхностного стока (ЦМР Copernicus GLO-30); перечень уточняется после полевой верификации. Методическая база: ВСН 01-89 (предпаводковые осмотры), СП 116.13330 (производственный контроль), СП 25.13330.2020 (защита оснований на ММГ от увлажнения).</div></div>
+  <div class="gsCard noprint"><h3>📄 Акт предпаводкового осмотра (по текущему состоянию чек-листа)</h3>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;font-size:12px;align-items:center">
+      № <input id="pavKomNo" style="${inSt};width:70px" value="${esc(kom.no||'')}">
+      дата <input id="pavKomDt" type="date" style="${inSt}" value="${esc(komDt)}">
+      Председатель <input id="pavKomPr" style="${inSt};width:230px" placeholder="должность, ФИО" value="${esc(kom.pr||'')}">
+      Члены комиссии <input id="pavKomM1" style="${inSt};width:190px" placeholder="ФИО 1" value="${esc(kom.m1||'')}">
+      <input id="pavKomM2" style="${inSt};width:190px" placeholder="ФИО 2" value="${esc(kom.m2||'')}">
+      <button class="wbtn" id="pavActBtn">⬇ Сформировать PDF-акт (готовность ${pct}%)</button>
+    </div>
+    <div class="mut" style="margin-top:4px">Состав акта: реквизиты и комиссия, чек-лист ВСН 01-89 с отметками и датами, осмотры площадок категории «высокий», вывод о готовности, подписи. Поля комиссии сохраняются локально.</div></div>`;
+}
+/* --- PDF-акт предпаводкового осмотра (разрешённое исключение политики скачивания: #pavActA) --- */
+function pavActPdf(){
+  if(typeof pdfMake==='undefined'){ alert('Модуль PDF (pdfmake) не загружен — проверьте соединение с CDN.'); return; }
+  const S=window.STOK, kom=gsPav._kom||{};
+  const dtStr=kom.dt?kom.dt.split('-').reverse().join('.'):new Date().toLocaleDateString('ru-RU');
+  const rows1=PAV_CHK.map(it=>{ const r=gsPav[it.k]||{}; return [it.k.toUpperCase(), it.t, r.v||'план', r.ts?new Date(r.ts).toLocaleDateString('ru-RU'):'—']; });
+  const hiPads={};
+  if(S) S.objects.filter(s=>s.risk==='высокий').forEach(s=>{ const k=s.pl||'(вне площадок)'; (hiPads[k]=hiPads[k]||[]).push(s); });
+  const pKeys=Object.keys(hiPads).sort((a,b)=>Math.max.apply(null,hiPads[b].map(s=>s.catch_near_km2))-Math.max.apply(null,hiPads[a].map(s=>s.catch_near_km2)));
+  const rows2=pKeys.map(k=>{ const r=gsPav['p_'+k]||{}; return [k, String(hiPads[k].length), Math.max.apply(null,hiPads[k].map(s=>s.catch_near_km2)).toFixed(2).replace('.',','), r.v||'план', r.ts?new Date(r.ts).toLocaleDateString('ru-RU'):'—']; });
+  const doneC=rows1.filter(r=>r[2]==='готово').length, doneP=rows2.filter(r=>r[3]==='готово').length;
+  const tot=PAV_CHK.length+pKeys.length, pct=tot?Math.round(100*(doneC+doneP)/tot):0;
+  const riskFill=v=>v==='готово'?'#DDEEDD':v==='в работе'?'#FBE8C8':'#EEEEEE';
+  const H=t=>({text:t,bold:true,fillColor:'#14295E',color:'#fff'});
+  const dd={
+    pageSize:'A4', pageMargins:[34,36,34,30], defaultStyle:{fontSize:9},
+    footer:(c,t)=>({text:'ООО «Черногорская ГРК» · система ГТМ зданий и сооружений · лист '+c+' из '+t, fontSize:7, color:'#555F6E', margin:[34,0,0,0]}),
+    content:[
+      {text:'ООО «Черногорская ГРК»', bold:true, fontSize:10, color:'#14295E'},
+      {text:'АКТ № '+(kom.no||'____')+' предпаводкового осмотра объектов ГТМ', bold:true, fontSize:14, color:'#14295E', alignment:'center', margin:[0,8,0,2]},
+      {text:'дата осмотра: '+dtStr, alignment:'center', fontSize:9, color:'#555F6E', margin:[0,0,0,8]},
+      {text:'Комиссия: председатель — '+(kom.pr||'_____________________')+'; члены комиссии — '+(kom.m1||'_____________________')+', '+(kom.m2||'_____________________')+'.', margin:[0,0,0,4]},
+      {text:'Основание: ВСН 01-89 (предпаводковые осмотры), программа ГТМ, приказ об организации ГТМ зданий и сооружений. Состав пунктов и категории риска — по системе ГТМ (модель поверхностного стока, ЦМР Copernicus GLO-30, скрининг). Отметки выполнения — из дашборда «Готовность к паводку» Центра контроля ГТМ.', fontSize:8, color:'#555F6E', margin:[0,0,0,8]},
+      {text:'1. Чек-лист предпаводковых мероприятий (ВСН 01-89)', bold:true, fontSize:10.5, color:'#14295E', margin:[0,0,0,3]},
+      {table:{headerRows:1, widths:[26,'*',52,52], body:[[H('Код'),H('Мероприятие'),H('Статус'),H('Дата отметки')]].concat(rows1.map(r=>[r[0],{text:r[1],fontSize:8},{text:r[2],fillColor:riskFill(r[2]),alignment:'center'},{text:r[3],alignment:'center'}]))}, layout:'lightHorizontalLines'},
+      {text:'2. Осмотры площадок с объектами категории «высокий»', bold:true, fontSize:10.5, color:'#14295E', margin:[0,10,0,3]},
+      {table:{headerRows:1, widths:['*',40,56,52,52], body:[[H('Площадка'),H('Объектов'),H('Макс. водосбор, км²'),H('Статус'),H('Дата отметки')]].concat(rows2.map(r=>[{text:r[0],fontSize:8},{text:r[1],alignment:'center'},{text:r[2],alignment:'center'},{text:r[3],fillColor:riskFill(r[3]),alignment:'center'},{text:r[4],alignment:'center'}]))}, layout:'lightHorizontalLines'},
+      {text:'Вывод: готовность к паводку на '+dtStr+' — '+pct+'% (мероприятия: '+doneC+' из '+PAV_CHK.length+'; площадки: '+doneP+' из '+pKeys.length+'). '+(pct===100?'Объекты к паводку готовы.':'Требуется завершение мероприятий и повторный осмотр до начала активного снеготаяния.'), bold:true, margin:[0,10,0,16]},
+      {columns:[
+        {width:'*',text:'Председатель комиссии\n\n_____________________ / '+(kom.pr||'_____________________')+' /'},
+        {width:'*',text:'Члены комиссии:\n\n_____________________ / '+(kom.m1||'_____________________')+' /\n\n_____________________ / '+(kom.m2||'_____________________')+' /'}
+      ]}
+    ]
+  };
+  pdfMake.createPdf(dd).getBlob(blob=>{
+    const a=document.createElement('a'); a.id='pavActA';
+    a.href=URL.createObjectURL(blob);
+    a.download='Акт_предпаводкового_осмотра_'+(kom.dt||new Date().toISOString().slice(0,10))+'.pdf';
+    a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+  });
 }
 /* --- диспетчер --- */
 const GS_VIEWS={alerts:gsViewAlerts, risk:gsViewRisk, prog:gsViewProg, sensors:gsViewSensors, data:gsViewData, road:gsViewRoad, sched:gsViewSched, stok:gsViewStok, pav:gsViewPav};
@@ -8274,6 +8350,9 @@ function gsBindCommon(){
   d.querySelectorAll('select.gsSt[data-pvk]').forEach(el=>el.addEventListener('change',()=>{ gsPav[el.dataset.pvk]={v:el.value,ts:new Date().toISOString()}; gsSave(GS_STORE.pav,gsPav); gsBadges(0); gsOpen('pav',true); }));
   d.querySelectorAll('select.gsSt[data-pvp]').forEach(el=>el.addEventListener('change',()=>{ gsPav['p_'+el.dataset.pvp]={v:el.value,ts:new Date().toISOString()}; gsSave(GS_STORE.pav,gsPav); gsBadges(0); gsOpen('pav',true); }));
   const pR=d.querySelector('[data-pvreset]'); if(pR) pR.addEventListener('click',()=>{ if(confirm('Сбросить все отметки готовности к паводку (начать новый сезон)?')){ gsPav={}; gsSave(GS_STORE.pav,gsPav); gsBadges(0); gsOpen('pav',true); } });
+  const pKomSave=()=>{ gsPav._kom={no:(document.getElementById('pavKomNo')||{}).value||'', dt:(document.getElementById('pavKomDt')||{}).value||'', pr:(document.getElementById('pavKomPr')||{}).value||'', m1:(document.getElementById('pavKomM1')||{}).value||'', m2:(document.getElementById('pavKomM2')||{}).value||''}; gsSave(GS_STORE.pav,gsPav); };
+  ['pavKomNo','pavKomDt','pavKomPr','pavKomM1','pavKomM2'].forEach(id=>{ const el=document.getElementById(id); if(el) el.addEventListener('change',pKomSave); });
+  const bA=document.getElementById('pavActBtn'); if(bA) bA.onclick=()=>{ pKomSave(); pavActPdf(); };
   const dE=document.getElementById('gsDutyEdit'); if(dE) dE.onclick=()=>{ const f=document.getElementById('gsDutyForm'); if(f) f.style.display=(f.style.display==='none'||!f.style.display)?'':'none'; };
   const dS=document.getElementById('gsDutySave'); if(dS) dS.onclick=()=>{ gsDuty={name:document.getElementById('gsDutyName').value.trim(), phone:document.getElementById('gsDutyPhone').value.trim(), tg:document.getElementById('gsDutyTg').value.trim().replace(/^@/,''), mail:document.getElementById('gsDutyMail').value.trim()}; gsSave(GS_STORE.duty,gsDuty); gsOpen('alerts',true); };
   d.querySelectorAll('[data-gsack]').forEach(el=>el.addEventListener('click',()=>gsAckNtf(el.dataset.gsack)));
@@ -8311,12 +8390,12 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 /* ---------- защищённый режим: запрет копирования/скачивания/скриншотов (скачивание разрешено только для презентации) ---------- */
 (function(){
   const ALLOW=el=>!!(el&&el.closest&&(el.closest('#niokrModal')||el.closest('#presBtn')||el.closest('input,textarea,[contenteditable="true"]')));
-  const DL_DENY='#repPrint, #regExport, #uplExport, #uplCsvTpl, #skExport, #gostPassBtn, a[download]:not(#presBtn):not(#stokXlsA)'; // выгрузки, закрытые политикой
+  const DL_DENY='#repPrint, #regExport, #uplExport, #uplCsvTpl, #skExport, #gostPassBtn, a[download]:not(#presBtn):not(#stokXlsA):not(#pavActA)'; // выгрузки, закрытые политикой
   let _cpT=null;
   function cpToast(){
     let t=document.getElementById('cpToast');
     if(!t){ t=document.createElement('div'); t.id='cpToast'; document.body.appendChild(t); }
-    t.textContent='Копирование, выгрузка, печать и снимки материалов отключены — сведения ограниченного доступа (ФЗ-98 «О коммерческой тайне»). Для скачивания доступны: презентация проекта (кнопка «⤓ Презентация») и сводная гидрологическая таблица (Центр контроля ГТМ → «🌊 Модель стока»).';
+    t.textContent='Копирование, выгрузка, печать и снимки материалов отключены — сведения ограниченного доступа (ФЗ-98 «О коммерческой тайне»). Для скачивания доступны: презентация проекта (кнопка «⤓ Презентация»), сводная гидрологическая таблица («🌊 Модель стока») и акт предпаводкового осмотра («🛡 Паводок»).';
     t.classList.add('on'); clearTimeout(_cpT); _cpT=setTimeout(()=>t.classList.remove('on'), 2600);
   }
   // печать полностью скрывает содержимое; размытие при потере фокуса — затруднение снимков экрана
@@ -8336,7 +8415,7 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
   // программные скачивания через отсоединённые <a download> (акты, расшифрованные файлы и т.п.)
   const _ac=HTMLAnchorElement.prototype.click;
   HTMLAnchorElement.prototype.click=function(){
-    if(this&&this.hasAttribute&&this.hasAttribute('download')&&this.id!=='presBtn'&&this.id!=='stokXlsA'){ cpToast(); return; }
+    if(this&&this.hasAttribute&&this.hasAttribute('download')&&this.id!=='presBtn'&&this.id!=='stokXlsA'&&this.id!=='pavActA'){ cpToast(); return; }
     return _ac.apply(this,arguments);
   };
   // печать / сохранение в PDF
@@ -8361,8 +8440,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"AtIN8NAW5X3/9J+WldPMIA==",ivV:"bRJb+v1H5Fr9o99E",wrapV:"BjRGTf78M07rL7EIY7rprzGS/RxYvBu1l+C3Jm9M5Lq0qciE9a1gSSSbD7Z3LZdE",saltE:"KG9VxZPRdQRDxmj7QFrOdA==",ivE:"+OVa8MoOytRPWVxz",wrapE:"pa3yE4f6GOTaVR7/G4ryfHWbmpFKUhAEHMoVkMC4YwYwulufsL1n1+8MU/chXg0X",ivD:"ptz7geaejxtjr/jX"};
-const BUILD="ee601dbd";
+const ENC={saltV:"5p8z5HyE0wT0cD7MTmvjCQ==",ivV:"BRrhaxNuti1Wl3Uk",wrapV:"jfL7kQ2WAFvyq5+r4ESJIiQmaIj+KvuM/VxR0WbLM4mOC7cPmurKCa5x9wojdCNO",saltE:"I2Zzkkv/V4ptpzJ2AtChqQ==",ivE:"HWxLx1j3s36C3SGZ",wrapE:"Oi2LMMo0RUe2SsdE8Ks/eV1J4T3iCFTojmmrNR5kFsZvWg6ssWGO7eHDsxEUbCKb",ivD:"xtVHdi3M5Lamn/7+"};
+const BUILD="3e037194";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
