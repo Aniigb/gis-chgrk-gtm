@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=c8592d13"></script>
-<script src="db_p2.js?v=c8592d13"></script>
-<script src="db_p3.js?v=c8592d13"></script>
-<script src="db_p4.js?v=c8592d13"></script>
-<script src="db_p5.js?v=c8592d13"></script>
-<script src="db_p6.js?v=c8592d13"></script>
-<script src="db_p7.js?v=c8592d13"></script>
-<script src="db_p8.js?v=c8592d13"></script>
+<script src="db_p1.js?v=f0af2db1"></script>
+<script src="db_p2.js?v=f0af2db1"></script>
+<script src="db_p3.js?v=f0af2db1"></script>
+<script src="db_p4.js?v=f0af2db1"></script>
+<script src="db_p5.js?v=f0af2db1"></script>
+<script src="db_p6.js?v=f0af2db1"></script>
+<script src="db_p7.js?v=f0af2db1"></script>
+<script src="db_p8.js?v=f0af2db1"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1725,7 +1725,7 @@ async function wxTick(){
   try{
     const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=69.355&longitude=88.20&current=temperature_2m,apparent_temperature,relative_humidity_2m,precipitation,wind_speed_10m,wind_direction_10m,weather_code&timezone=Asia%2FKrasnoyarsk');
     const c=(await r.json()).current;
-    const txt=`🌡 Норильск: ${Math.round(c.temperature_2m)} °C (ощущается ${Math.round(c.apparent_temperature)} °C) · ${wxDescr(c.weather_code)} · ветер ${windDir(c.wind_direction_10m)} ${Math.round(c.wind_speed_10m)} м/с · влажность ${c.relative_humidity_2m}%${c.precipitation?(' · осадки '+c.precipitation+' мм'):''} · обновлено ${new Date().toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})} · `;
+    const txt=`🌡 Норильск: ${Math.round(c.temperature_2m)} °C (ощущается ${Math.round(c.apparent_temperature)} °C) · ${wxDescr(c.weather_code)} · ветер ${windDir(c.wind_direction_10m)} ${Math.round(c.wind_speed_10m)} м/с · влажность ${c.relative_humidity_2m}%${c.precipitation?(' · осадки '+c.precipitation+' мм'):''} · `;
     A.textContent=txt; if(B) B.textContent=txt;
   }catch(e){ A.textContent='погода временно недоступна'; }
 }
@@ -5226,22 +5226,24 @@ function wBadge(n){
 /* --- постоянно видимая полоса: дежурный статус / активные метеопредупреждения --- */
 function warnStripSet(d, ws, stale){
   const st=document.getElementById('warnStrip'); if(!st) return;
-  if(!st.dataset.wired){ st.dataset.wired='1'; st.onclick=wxDutyOpen; }
-  if(!d){ st.className='warn'; st.innerHTML='<span>⚠ <b>Дежурный метеоконтроль</b>: нет связи с метеоисточником — повторная сверка через час · подробности и меры — клик по полосе</span>'; return; }
-  const upd=new Date(d.ts).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-  const nxt=new Date(d.ts+60*60*1000).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
+  const RBTN='<button class="wbtn" id="warnRefresh" title="Ручная сверка прогноза (внеочередное обновление)" style="font-size:12px;padding:1px 8px;margin-left:6px">⟳ обновить</button>';
+  if(!st.dataset.wired){ st.dataset.wired='1';
+    st.onclick=e=>{ if(e.target&&e.target.closest&&e.target.closest('#warnRefresh')) return; wxDutyOpen(); };
+    st.addEventListener('click',e=>{ const b=e.target&&e.target.closest&&e.target.closest('#warnRefresh'); if(b){ b.textContent='сверка…'; warnTick(true); } });
+  }
+  if(!d){ st.className='warn'; st.innerHTML='<span>⚠ <b>Дежурный метеоконтроль</b>: нет связи с метеоисточником — повторная сверка через час · подробности и меры — клик по полосе</span>'+RBTN; return; }
   let nObj=0; try{ nObj=DB.objects.length; }catch(e){}
   let ph=[]; try{ ph=procHighList(d); }catch(e){}
   const phTxt=ph.length?' · 🧬 высокая вероятность процессов: '+esc(ph.join('; ')):'';
   if(!ws.length){
     st.className=ph.length?'warn':'ok';
-    st.innerHTML='<span>'+(ph.length?'⚠':'🛡')+' <b>Дежурный метеоконтроль активен</b> · критичных явлений на 10 суток не прогнозируется'+phTxt+' · точки: Черногорский ГОК, Норильск · объектов под наблюдением: '+nObj+' · сверка '+upd+', следующая ~'+nxt+(stale?' · ⚠ показан закэшированный прогноз (нет связи)':'')+'</span>';
+    st.innerHTML='<span>'+(ph.length?'⚠':'🛡')+' <b>Дежурный метеоконтроль активен</b> · критичных явлений на 10 суток не прогнозируется'+phTxt+' · точки: Черногорский ГОК, Норильск · объектов под наблюдением: '+nObj+' · сверка автоматически каждый час'+(stale?' · ⚠ показан закэшированный прогноз (нет связи)':'')+'</span>'+RBTN;
     return;
   }
   const critN=ws.filter(w=>w.lvl==='crit').length;
   const w0=ws[0], hz=W_HAZ[w0.haz];
   st.className=critN?'crit':'warn';
-  st.innerHTML='<span>'+(critN?'⛔':'⚠')+' <b>Метеопредупреждения: '+ws.length+'</b>'+(critN?' · из них ОПАСНЫХ: '+critN:'')+' · ближайшее: '+hz.ic+' '+hz.nm+' — '+w0.date.split('-').reverse().join('.')+', '+esc(w0.pt)+' ('+esc(w0.val)+')'+phTxt+' · сверка '+upd+' · подробности и меры — клик</span>';
+  st.innerHTML='<span>'+(critN?'⛔':'⚠')+' <b>Метеопредупреждения: '+ws.length+'</b>'+(critN?' · из них ОПАСНЫХ: '+critN:'')+' · ближайшее: '+hz.ic+' '+hz.nm+' — '+w0.date.split('-').reverse().join('.')+', '+esc(w0.pt)+' ('+esc(w0.val)+')'+phTxt+' · подробности и меры — клик</span>'+RBTN;
 }
 function warnRender(d,stale){
   const z=document.getElementById('warnZone');
@@ -5250,8 +5252,7 @@ function warnRender(d,stale){
   wBadge(ws.length);
   warnStripSet(d, ws, stale);
   if(!z) return;
-  const upd=new Date(d.ts).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-  let h='<div class="warn-meta">Источник: Open-Meteo (модели ECMWF IFS / GFS), точки: Черногорский ГОК, Норильск · обновлено '+upd+', автообновление каждый час'+(stale?' · ⚠ показан закэшированный прогноз (нет связи)':'')+'. Пороги — по критериям опасных явлений Росгидромета; меры — по СП 305.1325800.2017 и практике эксплуатации зданий и сооружений на ММГ.</div>';
+  let h='<div class="warn-meta">Источник: Open-Meteo (модели ECMWF IFS / GFS), точки: Черногорский ГОК, Норильск · сверка прогноза — автоматически каждый час, внеочередная — кнопкой «⟳ обновить» в полосе дежурства'+(stale?' · ⚠ показан закэшированный прогноз (нет связи)':'')+'. Пороги — по критериям опасных явлений Росгидромета; меры — по СП 305.1325800.2017 и практике эксплуатации зданий и сооружений на ММГ.</div>';
   if(!ws.length){ h+='<div class="warn-none">✔ Критичных погодных явлений на ближайшие 10 суток не прогнозируется.</div>'; h+=procHtml(d); z.innerHTML=h; return; }
   ws.forEach(w=>{
     const hz=W_HAZ[w.haz];
@@ -5284,16 +5285,14 @@ function wxDutyOpen(){
   let nObj=0; try{ nObj=DB.objects.length; }catch(e){}
   let h='<div class="wxd-duty">'
     +'<b>Функция режима.</b> Круглосуточный автоматический контроль прогноза критичных метеорологических явлений, способных повлиять на безопасность, устойчивость и эксплуатацию зданий и сооружений Черногорского ГОК (ООО «Черногорская ГРК»): ливневые дожди, интенсивные снегопады и метели, сильный ветер, грозы, гололёдные явления.<br>'
-    +'<b>Задачи.</b> ежечасная сверка прогноза на 10 суток по точкам наблюдения; аналитическая классификация предупреждений по группам объектов с учётом их конструктивных особенностей (A — здания и сооружения на ММГ; B — насыпи, автодороги и линейные сооружения; C — ГТС и водоотвод площадки); формирование рекомендаций по подготовке к явлению; доведение предупреждений до дежурных служб эксплуатирующей организации.<br>'
+    +'<b>Задачи.</b> ежечасная сверка прогноза на 10 суток по точкам наблюдения; аналитическая классификация предупреждений по группам объектов с учётом их конструктивных особенностей (A — здания и сооружения на ММГ; B — насыпи, автодороги и линейные сооружения; C — ГТС и водоотвод площадки); формирование рекомендаций по подготовке к явлению; доведение предупреждений до дежурных служб эксплуатирующей организации; внеочередная ручная сверка прогноза — кнопкой «⟳ обновить» в полосе дежурства и в настоящем окне.<br>'
     +'<b>Источник и пороги.</b> Open-Meteo (модели ECMWF IFS / GFS), точки: площадка Черногорского ГОК (69.216°N, 88.317°E) и г. Норильск (69.355°N, 88.20°E). Пороги — по критериям опасных явлений Росгидромета: дождь ≥ 15 мм/сут (предупреждение) и ≥ 30 мм/сут (опасно); снегопад ≥ 8 см/сут и ≥ 20 см/сут; порывы ветра ≥ 17 м/с и ≥ 22 м/с; гроза; гололёдный дождь; метель (снег ≥ 5 см + порывы ≥ 15 м/с). Меры — по СП 305.1325800.2017 и практике эксплуатации зданий и сооружений на ММГ.<br>'
     +'<b>Вероятностные модели опасных процессов.</b> Состав скачиваемых метеоданных расширен (почасово, 10 суток): температура воздуха, дождь, снегопад, код погоды, порывы и средняя скорость ветра, высота снежного покрова, температура грунта 0–7 см. По этим рядам вычисляются вероятности: подтопления (водный баланс стока: дождь + степень-часовое снеготаяние, коэффициент стока 0,9 на мёрзлом грунте ММГ), наледеобразования (мороз после поступления влаги, переход «оттепель → мороз»), снежных заносов (метелевый перенос от средней скорости ≥ 5 м/с, свежий и сухой снег) и переходов через 0 °C (морозное выветривание бетона и креплений). Вероятности ≥ 30 % выводятся ниже с адаптацией влияния и мер под типы объектов; ≥ 60 % — высокая, выводится в полосу дежурного контроля.</div>';
   if(!d){
     h+='<div class="warn-card crit"><h3>⚠ Нет связи с метеоисточником</h3><div class="wg">Прогноз не загружен и закэшированных данных нет. Дежурство продолжается: повторная сверка выполняется автоматически каждый час. До восстановления связи — штатный регламент наблюдений и данные метеопостов эксплуатирующей организации.</div></div>';
   }else{
-    const upd=new Date(d.ts).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-    const nxt=new Date(d.ts+60*60*1000).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'});
     const stale=(Date.now()-d.ts>55*60*1000);
-    h+='<div class="wxd-duty"><b>Статус дежурства:</b> <span style="color:#2e7d32;font-weight:700">активно, на дежурстве</span> · объектов под наблюдением: '+nObj+' · последняя сверка: <b>'+upd+'</b> · следующая сверка ~'+nxt+' (автоматически, каждый час)'+(stale?' · ⚠ прогноз закэширован, ожидается обновление':'')+'.</div>';
+    h+='<div class="wxd-duty"><b>Статус дежурства:</b> <span style="color:#2e7d32;font-weight:700">активно, на дежурстве</span> · объектов под наблюдением: '+nObj+' · сверка прогноза — автоматически каждый час, внеочередная — кнопкой «⟳ Обновить прогноз» ниже или в полосе дежурства'+(stale?' · ⚠ прогноз закэширован, ожидается обновление':'')+'.</div>';
     if(!ws.length){
       h+='<div class="warn-none">✔ Критичных погодных явлений на ближайшие 10 суток не прогнозируется — дежурство в штатном режиме, внеочередные меры не требуются. Режим продолжает ежечасную сверку.</div>';
     }else{
@@ -5311,12 +5310,14 @@ function wxDutyOpen(){
     }
     h+=procHtml(d);
     h+=stokInflowHtml(d);
-    h+='<button class="wxd-regBtn" id="wxDutyReg">Открыть сводный реестр объектов РИСК/КРИТИЧНО</button>';
+    h+='<button class="wxd-regBtn" id="wxDutyRefresh">⟳ Обновить прогноз сейчас</button> <button class="wxd-regBtn" id="wxDutyReg">Открыть сводный реестр объектов РИСК/КРИТИЧНО</button>';
   }
   w.innerHTML=h;
   m.style.display='block';
   const rb=document.getElementById('wxDutyReg');
   if(rb) rb.onclick=()=>{ m.style.display='none'; const b=document.getElementById('regBtn'); if(b) b.click(); };
+  const rf=document.getElementById('wxDutyRefresh');
+  if(rf) rf.onclick=()=>{ rf.disabled=true; rf.textContent='Сверка…'; warnTick(true).finally(()=>wxDutyOpen()); };
 }
 document.getElementById('wxDutyClose').onclick=()=>document.getElementById('wxDutyModal').style.display='none';
 document.getElementById('wxDutyModal').addEventListener('click',e=>{ if(e.target.id==='wxDutyModal') e.target.style.display='none'; });
@@ -8478,8 +8479,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"TE+ovDiwmx4xdd2TYLJ4Tw==",ivV:"sQWC8oA3CJMKHlxy",wrapV:"aylZ3mCnCW1y5KOr7GIl++lgSjO86YfzDtvmeJyXtR+2lEBUc6+1Lqxjtkvl5Uk4",saltE:"YsODN/K/+Qrv7YpwvAhtkA==",ivE:"mbURVrokX/hCGrmi",wrapE:"RqWW+ZUvBmZQV19lsPzqJCqcozMEmefXj2VNTz8jBrvemxmuLGFJOyzDO3DkbVhb",ivD:"9Q9rmcGlwxSmTE1f"};
-const BUILD="c8592d13";
+const ENC={saltV:"fplTeKFSOsT7XliQDRRubQ==",ivV:"qCjYKazFzalN4cFS",wrapV:"NDFM8U7aesZbTht/zrOPb8p7Tb6KmYeydFdPD8eLAIf6E9raZt54wRvBk+fepKHB",saltE:"dUlqPMc88vZFjJTN2+k+Yg==",ivE:"Rpm6VUWrDUJ8yUJh",wrapE:"/Rdy+jZGW3b32qzqMqEh4Q1kywzSaJCAKz9NbTR9ohdVPEVpnRGFFA3XH44Ndj72",ivD:"8i1E3kv2lgZdbsBO"};
+const BUILD="f0af2db1";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
