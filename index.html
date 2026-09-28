@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=ac641e47"></script>
-<script src="db_p2.js?v=ac641e47"></script>
-<script src="db_p3.js?v=ac641e47"></script>
-<script src="db_p4.js?v=ac641e47"></script>
-<script src="db_p5.js?v=ac641e47"></script>
-<script src="db_p6.js?v=ac641e47"></script>
-<script src="db_p7.js?v=ac641e47"></script>
-<script src="db_p8.js?v=ac641e47"></script>
+<script src="db_p1.js?v=43cc5b7a"></script>
+<script src="db_p2.js?v=43cc5b7a"></script>
+<script src="db_p3.js?v=43cc5b7a"></script>
+<script src="db_p4.js?v=43cc5b7a"></script>
+<script src="db_p5.js?v=43cc5b7a"></script>
+<script src="db_p6.js?v=43cc5b7a"></script>
+<script src="db_p7.js?v=43cc5b7a"></script>
+<script src="db_p8.js?v=43cc5b7a"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -4927,9 +4927,10 @@ async function warnFetch(){
   const r=await fetch(url); const j=await r.json();
   const d={ts:Date.now(), pts:Array.isArray(j)?j:[j]};
   try{ localStorage.setItem('gtm_warn',JSON.stringify(d)); }catch(e){}
+  try{ wjhStoreForecast(d); }catch(e){} // накопление снимков прогноза для журнала минувших явлений
   return d;
 }
-function warnAnalyze(d){
+function warnAnalyze(d,keepPast){
   const out=[];
   (d.pts||[]).forEach((pt,pi)=>{
     const meta=W_PTS[pi]; if(!meta||!pt||!pt.hourly) return;
@@ -4945,7 +4946,7 @@ function warnAnalyze(d){
       if(c===66||c===67) a.frz++;
     }
     Object.keys(days).sort().forEach(key=>{
-      if(key<todayKey()) return; // прошедшие сутки — не активные предупреждения
+      if(!keepPast&&key<todayKey()) return; // прошедшие сутки — не активные предупреждения (keepPast — для журнала минувших явлений)
       const a=days[key];
       const push=(haz,lvl,val)=>out.push({date:key,haz,lvl,val,pt:meta.nm,groups:meta.groups});
       if(a.rain>=30) push('rain','crit','дождь '+a.rain.toFixed(0)+' мм/сут');
@@ -5282,6 +5283,68 @@ setInterval(()=>warnTick(false),60*60*1000);
 warnTick(false);
 setTimeout(()=>{ try{ const d=(typeof wCache==='function')?wCache():null; if(d) stokInflowCheck(d); }catch(e){} },3000); // первичная сверка притока после полной инициализации скрипта
 
+/* ---------- журнал минувших явлений: прогноз vs факт (контроль качества прогноза) ----------
+   Прогноз — снимки предупреждений из сверок системы, сохранённые накануне целевых суток (localStorage, с 28.09.2026).
+   Факт — модельный анализ Open-Meteo (past_days) по тем же порогам Росгидромета; после ввода АМС (дорожная карта C4) — по местным замерам. */
+const WJH_FC='gtm_warn_hist', WJH_FX='gtm_fact_hist';
+function wjhLoad(k){ try{ return JSON.parse(localStorage.getItem(k)||'{}'); }catch(e){ return {}; } }
+function wjhSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function wjhStoreForecast(d){
+  const hist=wjhLoad(WJH_FC), issued=todayKey();
+  const byDate={};
+  warnAnalyze(d).forEach(w=>{ if(w.date>issued){ (byDate[w.date]=byDate[w.date]||[]).push({haz:w.haz,lvl:w.lvl,val:w.val,pt:w.pt}); } });
+  Object.keys(byDate).forEach(dt=>{ hist[dt]={issued:issued, ws:byDate[dt]}; }); // последняя заблаговременная сверка (накануне суток)
+  const keys=Object.keys(hist).sort();
+  while(keys.length>14) delete hist[keys.shift()];
+  wjhSave(WJH_FC,hist);
+}
+async function wjhFactFetch(){
+  const url='https://api.open-meteo.com/v1/forecast?latitude='+W_PTS.map(p=>p.lat).join(',')+'&longitude='+W_PTS.map(p=>p.lon).join(',')
+    +'&hourly=rain,snowfall,weather_code,wind_gusts_10m&wind_speed_unit=ms&past_days=10&forecast_days=1&timezone=Asia%2FKrasnoyarsk';
+  const r=await fetch(url); const j=await r.json();
+  return {ts:Date.now(), pts:Array.isArray(j)?j:[j]};
+}
+function wjhHtml(){
+  return '<details id="wjhDet" style="margin-top:10px;border-top:2px solid var(--line);padding-top:8px">'
+    +'<summary style="cursor:pointer;font-size:13px;font-weight:600">📓 Журнал минувших явлений — контроль качества прогноза (10 суток)</summary>'
+    +'<div id="wjhBody" class="mut" style="margin-top:6px">Идёт сверка сохранённых прогнозов с фактической погодой…</div></details>';
+}
+function wjhFill(){
+  const body=document.getElementById('wjhBody'); if(!body) return;
+  (async()=>{
+    let fx=wjhLoad(WJH_FX);
+    if(fx.day!==todayKey()||!fx.data){ fx={day:todayKey(), data:await wjhFactFetch()}; wjhSave(WJH_FX,fx); }
+    const facts=warnAnalyze(fx.data,true).filter(w=>w.date<todayKey()); // только минувшие сутки
+    const fc=wjhLoad(WJH_FC);
+    const byDate={};
+    facts.forEach(w=>{ (byDate[w.date]=byDate[w.date]||{fx:[]}).fx.push(w); });
+    Object.keys(fc).forEach(dt=>{ if(dt<todayKey()){ (byDate[dt]=byDate[dt]||{fx:[]}).fc=fc[dt]; } });
+    const dates=Object.keys(byDate).sort().reverse().slice(0,10);
+    const nm=h=>W_HAZ[h].nm, ic=h=>W_HAZ[h].ic, ptS=p=>esc(p.split('(')[0].trim());
+    const evL=w=>ic(w.haz)+' '+esc(w.val)+(w.lvl==='crit'?' (ОПАСНО)':'')+' — '+ptS(w.pt);
+    let ok=0,no=0,miss=0,nofc=0, rows='';
+    dates.forEach(dt=>{
+      const o=byDate[dt], fEv=o.fc?o.fc.ws:[], xEv=o.fx;
+      const F={},X={};
+      fEv.forEach(w=>{F[w.haz]=1;}); xEv.forEach(w=>{X[w.haz]=1;});
+      const cnf=Object.keys(F).filter(h=>X[h]), lns=Object.keys(F).filter(h=>!X[h]), msd=Object.keys(X).filter(h=>!F[h]);
+      ok+=cnf.length; no+=lns.length; miss+=msd.length; if(!o.fc) nofc++;
+      const verdict=[];
+      if(cnf.length) verdict.push('<span style="color:#2e7d32">✔ подтверждено: '+cnf.map(nm).join(', ')+'</span>');
+      if(lns.length) verdict.push('<span style="color:#b26a00">✘ не подтвердилось: '+lns.map(nm).join(', ')+'</span>');
+      if(msd.length) verdict.push('<span style="color:#c62828">⚠ пропущено прогнозом: '+msd.map(nm).join(', ')+'</span>');
+      const fTxt=o.fc ? (fEv.length?fEv.map(evL).join('<br>'):'явлений не прогнозировалось')+' <span class="mut">(сверка '+o.fc.issued.split('-').reverse().join('.')+')</span>'
+                      : '<span class="mut">нет сохранённой сверки</span>';
+      const xTxt=xEv.length?xEv.map(evL).join('<br>'):'явлений не было';
+      rows+='<tr><td style="white-space:nowrap">'+dt.split('-').reverse().join('.')+'</td><td>'+fTxt+'</td><td>'+xTxt+'</td><td style="font-size:11.5px">'+(verdict.join('<br>')||'<span class="mut">штатно</span>')+'</td></tr>';
+    });
+    let h='<div style="font-size:12px;margin-bottom:5px"><b>Итог за 10 суток:</b> <span style="color:#2e7d32">✔ подтверждено: '+ok+'</span> · <span style="color:#b26a00">✘ не подтвердилось: '+no+'</span> · <span style="color:#c62828">⚠ пропущено прогнозом: '+miss+'</span>'+(nofc?' · <span class="mut">дат без сохранённой сверки: '+nofc+'</span>':'')+'</div>';
+    if(!dates.length) h+='<div class="warn-none">За минувшие 10 суток критичных явлений не было и предупреждений не выдавалось — штатный режим. Снимки прогнозов копятся автоматически с каждой сверкой (с 28.09.2026).</div>';
+    else h+='<table class="gsTbl"><tr><th>Сутки</th><th style="text-align:left">Прогноз (сохранённая сверка)</th><th style="text-align:left">Факт (модельный анализ)</th><th style="text-align:left">Оценка</th></tr>'+rows+'</table>';
+    h+='<div class="warn-meta" style="margin-top:6px">«Прогноз» — предупреждения из сверок системы, сохранённых накануне целевых суток (локально в этом браузере, накапливаются с 28.09.2026). «Факт» — модельный анализ Open-Meteo за прошедшие сутки (почасовые ряды past_days) по тем же порогам Росгидромета; после ввода АМС (дорожная карта C4) факт — по местным замерам. Сопоставление — по типу явления и суткам; точка указана в строке события. Сутки «сегодня» в журнал не входят — сутки не завершены.</div>';
+    body.className=''; body.innerHTML=h;
+  })().catch(e=>{ body.innerHTML='⚠ Нет связи с метеоисточником — журнал недоступен. Повторите позже.'; });
+}
 /* ---------- скрытое окно дежурного метеоконтроля (появляется по клику на полосу) ---------- */
 function wxDutyOpen(){
   const m=document.getElementById('wxDutyModal'), w=document.getElementById('wxDutyWrap');
@@ -5315,6 +5378,7 @@ function wxDutyOpen(){
     }
     h+=procHtml(d);
     h+=stokInflowHtml(d);
+    h+=wjhHtml();
     h+='<button class="wxd-regBtn" id="wxDutyRefresh">⟳ Обновить прогноз сейчас</button> <button class="wxd-regBtn" id="wxDutyReg">Открыть сводный реестр объектов РИСК/КРИТИЧНО</button>';
   }
   w.innerHTML=h;
@@ -5323,6 +5387,8 @@ function wxDutyOpen(){
   if(rb) rb.onclick=()=>{ m.style.display='none'; const b=document.getElementById('regBtn'); if(b) b.click(); };
   const rf=document.getElementById('wxDutyRefresh');
   if(rf) rf.onclick=()=>{ rf.disabled=true; rf.textContent='Сверка…'; warnTick(true).finally(()=>wxDutyOpen()); };
+  const wj=document.getElementById('wjhDet');
+  if(wj) wj.addEventListener('toggle',()=>{ if(wj.open) wjhFill(); });
 }
 document.getElementById('wxDutyClose').onclick=()=>document.getElementById('wxDutyModal').style.display='none';
 document.getElementById('wxDutyModal').addEventListener('click',e=>{ if(e.target.id==='wxDutyModal') e.target.style.display='none'; });
@@ -8484,8 +8550,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"JOwaBDjf1waVnXAWglYJtA==",ivV:"qo4lJtnPBxKOYtXV",wrapV:"eCLVpvQoiCUJkB/HYt+tqoiioQOet88CAv2vr0ilXAZA9mEXyJfEXApr/nF/TP6/",saltE:"tFORI6W1Z+nXZkUzfk03+w==",ivE:"Y7YT45UrXI6Lr4OZ",wrapE:"Gh7CQEPuRcm/0aV7leyN2zSaibngrOoryN9vXaa+8gZlVv7alUJoVCxpXMmwXLPS",ivD:"s7AGc86Bd0AscV6f"};
-const BUILD="ac641e47";
+const ENC={saltV:"+ZQ03pALx3C7HMOu8AgJtg==",ivV:"Hz2W7eog+/11oE6H",wrapV:"c8w89a+KdY1U31KwuyXGXUD+7owZf0NZ9KCu/i6uHf7fYqeYbws4tnAT8U/2VY1E",saltE:"AMhF5v7KjiUEIQuAqJQ1+A==",ivE:"9egpPuzGoZdlBJrb",wrapE:"cm7sACH3HSi0vZil0IVAOJUQQl/SvTvw1f8c5FomFuDIp6UQb/tTxJx0zOyHhfTJ",ivD:"PJs669rO4LLUzuUH"};
+const BUILD="43cc5b7a";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
