@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=ea27d0ce"></script>
-<script src="db_p2.js?v=ea27d0ce"></script>
-<script src="db_p3.js?v=ea27d0ce"></script>
-<script src="db_p4.js?v=ea27d0ce"></script>
-<script src="db_p5.js?v=ea27d0ce"></script>
-<script src="db_p6.js?v=ea27d0ce"></script>
-<script src="db_p7.js?v=ea27d0ce"></script>
-<script src="db_p8.js?v=ea27d0ce"></script>
+<script src="db_p1.js?v=245f39a8"></script>
+<script src="db_p2.js?v=245f39a8"></script>
+<script src="db_p3.js?v=245f39a8"></script>
+<script src="db_p4.js?v=245f39a8"></script>
+<script src="db_p5.js?v=245f39a8"></script>
+<script src="db_p6.js?v=245f39a8"></script>
+<script src="db_p7.js?v=245f39a8"></script>
+<script src="db_p8.js?v=245f39a8"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -2275,6 +2275,29 @@ function repLab(o,f){
   const ri=(DB.repInfo||{})[f]; if(ri) return ri;
   return {t:f, y:''};
 }
+/* ---------- координатная привязка точек КИА (реестр o.points: thermal/piezo/marks/repers/obs/gauge) ---------- */
+function kiaPt(o,name){ // точка наблюдательной сети объекта по имени (ПС-1, П-1, 1П, DR1, gm3, '7'…)
+  const pts=o.points||{}, nm=String(name).trim();
+  for(const g of ['thermal','piezo','marks','repers','obs','gauge']){
+    const f=(pts[g]||[]).find(p=>String(p.n).trim()===nm);
+    if(f) return f;
+  }
+  return null;
+}
+const KIA_NA='<span style="color:var(--mut)" title="Уточняется по каталогу геодезической службы ЧГРК">—</span>';
+function kiaTds(o,name){ // три ячейки X/Y/H для таблиц разделов КИА (X,Y — МСК-165; H — Балтийская 1977 / исходная отметка журнала)
+  const p=kiaPt(o,name);
+  if(!p) return '<td>'+KIA_NA+'</td><td>'+KIA_NA+'</td><td>'+KIA_NA+'</td>';
+  return '<td>'+(p.x!=null?p.x.toLocaleString('ru-RU'):KIA_NA)+'</td>'
+       + '<td>'+(p.y!=null?p.y.toLocaleString('ru-RU'):KIA_NA)+'</td>'
+       + '<td>'+(p.h!=null?String(p.h).replace('.',','):KIA_NA)+'</td>';
+}
+function kiaPtLine(o,name){ // короткая строка координат для заголовков/саммари
+  const p=kiaPt(o,name);
+  if(!p||(p.x==null&&p.h==null)) return ' · координаты уточняются';
+  return ' · X '+(p.x!=null?p.x.toLocaleString('ru-RU'):'—')+', Y '+(p.y!=null?p.y.toLocaleString('ru-RU'):'—')+(p.h!=null?', H '+String(p.h).replace('.',',')+' м':'')+' (МСК-165)';
+}
+const KIA_CRD_NOTE='Координаты X, Y — в местной системе координат МСК-165; H — абсолютная отметка (Балтийская система 1977) из каталогов программ ГТМ и ведомостей изысканий либо исходная отметка из журнала наблюдений; «—» — уточняется по каталогу геодезической службы ЧГРК.';
 function igeRegHtml(o){
   const packs=o.igeList||[]; if(!packs.length) return '';
   const n=packs.reduce((s,p)=>s+p.entries.length,0);
@@ -2695,13 +2718,13 @@ function tabPiezo(o, el){
   ${archNames.length?`
   <div class="sect">Архивные ряды из журналов наблюдений · рядов: ${archNames.length}</div>
   <table class="rows static"><thead><tr>
-    <th style="width:34%">Ряд (пьезометр / створ)</th><th style="width:10%">Замеров</th><th style="width:22%">Период</th><th style="width:14%">Последнее</th><th>Показать на графике</th>
+    <th style="width:20%">Ряд (пьезометр / створ)</th><th style="width:11%">X, м</th><th style="width:11%">Y, м</th><th style="width:8%">H, м</th><th style="width:9%">Замеров</th><th style="width:19%">Период</th><th style="width:12%">Последнее</th><th>Показать на графике</th>
   </tr></thead><tbody>
   ${archNames.map((k,i)=>{const s=arch[k];const last=s[s.length-1];return `<tr>
-    <td>${esc(k)}</td><td><b>${s.length}</b></td><td>${esc(s[0][0])} — ${esc(last[0])}</td><td><b>${last[1]}</b> м</td>
+    <td>${esc(k)}</td>${kiaTds(o,k)}<td><b>${s.length}</b></td><td>${esc(s[0][0])} — ${esc(last[0])}</td><td><b>${last[1]}</b> м</td>
     <td><label class="pzpick"><input type="checkbox" data-pz="${esc(k)}"${i<6?' checked':''}></label></td></tr>`;}).join('')}
   </tbody></table>
-  <div class="note" style="margin:-4px 0 8px">Значения — как в журнале-источнике: глубина от поверхности/оголовка либо абс. отметка, м; ряд «Уровень водоёма (отм.), м» — отметка уровня воды в водоёме (форма 5). Источники — во вкладке «Документация» / поле «Источники» карточки.</div>
+  <div class="note" style="margin:-4px 0 8px">Значения — как в журнале-источнике: глубина от поверхности/оголовка либо абс. отметка, м; ряд «Уровень водоёма (отм.), м» — отметка уровня воды в водоёме (форма 5). ${KIA_CRD_NOTE} Источники — во вкладке «Документация» / поле «Источники» карточки.</div>
   ${(()=>{ const ov=DECL_OVR[o.id]||{}; if(!ov.piezo&&!ov.pond) return '';
     const stP=(v,k1,k2)=> v===null?'<span style="color:#888">нет ряда наблюдений</span>':(v>=k2?'<b style="color:#c62828">К2 — превышение</b>':(v>=k1?'<b style="color:#a86400">К1 — внимание</b>':'<span style="color:#2e7d32">норма</span>'));
     const rows=[];
@@ -3135,9 +3158,9 @@ function tabGeoterm(o, el){
     +'</table>'
     +'<div class="note">Глубина НГК — вычислена по рядам замеров скважин объекта: глубина, ниже которой амплитуда годовой гармоники температуры ≤ 0,1 °C после снятия многолетнего тренда (СП 25.13330.2020, п. 3.1). Скважины, где сезонный ход наблюдался недостаточно полно (менее 6 замеров, 2 лет или 4 различных месяцев), в расчёте не участвуют.</div></div>'
     +(thaw.length? sec('thaw','📉','Глубина оттаивания грунтов по замерам — изотерма 0 °C · ГОСТ 25358-2020, прил. Д','макс. '+(thawMax.m.gt?'&gt; ':'')+thawMax.m.z.toFixed(2)+' м · скв. '+esc(thawMax.w),
-        '<table class="rows static"><thead><tr><th>Скважина</th><th style="width:16%">Замеров с оттаиванием</th><th style="width:17%">Макс. глубина, м</th><th style="width:14%">Дата максимума</th><th style="width:22%">Последний замер, м</th></tr></thead><tbody>'
-        +thaw.map(x=>'<tr'+(x===thawMax?' style="background:#fdeaea"':'')+'><td>'+esc(x.w)+'</td><td>'+x.m.n+' из '+x.m.total+'</td><td><b>'+(x.m.gt?'&gt; ':'')+x.m.z.toFixed(2)+'</b></td><td>'+x.m.date+'</td><td>'+(x.m.last?((x.m.last.gt?'&gt; ':'')+x.m.last.z.toFixed(2)+' ('+x.m.last.d+')'):'—')+'</td></tr>').join('')
-        +'</tbody></table><div class="note">Глубина оттаивания — глубина изотермы 0 °C в профиле замера (линейная интерполяция между смежными глубинами). Знак «&gt;» — фронт оттаивания ниже забоя скважины. Разовые замеры из одной точки профиля не используются. Максимум сезона (конец летнего периода) соответствует глубине сезонного оттаивания — СП 25.13330.2020. Подсвечена скважина с максимальной глубиной по объекту.</div><canvas class="plot" id="thawChart"></canvas>'):'')
+        '<table class="rows static"><thead><tr><th>Скважина</th><th style="width:11%">X, м</th><th style="width:11%">Y, м</th><th style="width:8%">H, м</th><th style="width:14%">Замеров с оттаиванием</th><th style="width:14%">Макс. глубина, м</th><th style="width:12%">Дата максимума</th><th style="width:20%">Последний замер, м</th></tr></thead><tbody>'
+        +thaw.map(x=>'<tr'+(x===thawMax?' style="background:#fdeaea"':'')+'><td>'+esc(x.w)+'</td>'+kiaTds(o,x.w)+'<td>'+x.m.n+' из '+x.m.total+'</td><td><b>'+(x.m.gt?'&gt; ':'')+x.m.z.toFixed(2)+'</b></td><td>'+x.m.date+'</td><td>'+(x.m.last?((x.m.last.gt?'&gt; ':'')+x.m.last.z.toFixed(2)+' ('+x.m.last.d+')'):'—')+'</td></tr>').join('')
+        +'</tbody></table><div class="note">Глубина оттаивания — глубина изотермы 0 °C в профиле замера (линейная интерполяция между смежными глубинами). Знак «&gt;» — фронт оттаивания ниже забоя скважины. Разовые замеры из одной точки профиля не используются. Максимум сезона (конец летнего периода) соответствует глубине сезонного оттаивания — СП 25.13330.2020. Подсвечена скважина с максимальной глубиной по объекту. '+KIA_CRD_NOTE+'</div><canvas class="plot" id="thawChart"></canvas>'):'')
     +sec('prof','🌡','Профиль температур по глубине · ГОСТ 25358-2020, прил. Д','скв. '+esc(curWell),
         '<div class="wells" id="wellBtns"></div><canvas class="plot" id="gostChart"></canvas>')
     +sec('iso','🗺','Термоизоплеты скважины · ГОСТ 25358-2020, прил. Д, рис. Д.2','скв. '+esc(curWell),
@@ -3147,8 +3170,8 @@ function tabGeoterm(o, el){
         +'<div class="depths" id="depthBtns"></div><canvas class="plot" id="trendChart"></canvas>'
         +'<div class="sect" style="margin-top:12px">Все скважины (усреднённые ряды)</div><canvas class="plot" id="trendChartAll"></canvas>')
     +sec('tabs','🧮','Таблицы измерений температуры по скважинам', wells.length+' скв. · T, °C',
-        '<div class="note">Строки — глубина, м; столбцы — даты замеров. Таблица строится при первом раскрытии скважины (клик по строке). Положительные значения температуры (талый грунт) выделяются красным; значения — как в журналах-источниках (ГОСТ 25358-2020, прил. В). Те же ряды — на графиках смежных подразделов.</div>'
-        +wells.map(w=>{ const wd=o.prof[w]; return '<details class="wt" data-w="'+esc(w)+'"><summary><b>Скважина '+esc(w)+'</b> · замеров: '+wd.s.length+'</summary><div class="wt-scroll"></div></details>'; }).join(''))
+        '<div class="note">Строки — глубина, м; столбцы — даты замеров. Таблица строится при первом раскрытии скважины (клик по строке). Положительные значения температуры (талый грунт) выделяются красным; значения — как в журналах-источниках (ГОСТ 25358-2020, прил. В). Те же ряды — на графиках смежных подразделов. '+KIA_CRD_NOTE+'</div>'
+        +wells.map(w=>{ const wd=o.prof[w]; return '<details class="wt" data-w="'+esc(w)+'"><summary><b>Скважина '+esc(w)+'</b> · замеров: '+wd.s.length+kiaPtLine(o,w)+'</summary><div class="wt-scroll"></div></details>'; }).join(''))
     +sec('fc','🔮','Прогноз температуры основания до 2050 г.','среднее по всем скважинам',
         '<div class="note" style="margin:0 0 2px">Глубина прогноза: <span id="fcBtns"></span></div><canvas class="plot" id="fcChart"></canvas>'
         +'<div class="note">Прогноз оценочный: сплошная линия — ряд наблюдений; штриховая — линейная экстраполяция наблюдаемого тренда; пунктир — тренд с климатической поправкой потепления воздуха Арктической зоны ≈ +0,35 °C/декаду (сценарий SSP2-4.5, оценочно) с затуханием по глубине (5 м — ×0,6; 10 м — ×0,8; 15 м — ×0,9). Красная линия — 0 °C (граница мёрзлого состояния). Подлежит уточнению теплотехническим расчётом.</div>');
@@ -3371,9 +3394,9 @@ function tabGeod(o, el){
     builtin=`
     <div class="sect">Геодезические наблюдения за сооружениями объекта · марок: ${marks.length}</div>
     <table class="rows static"><thead><tr>
-      <th>Марка</th><th style="width:9%">Замеров</th><th style="width:19%">Период</th><th style="width:14%">Осадка с нач. набл., мм</th><th style="width:12%">Ср. скорость, мм/год</th><th style="width:14%">Скорость последнего цикла, мм/год</th><th style="width:12%">Динамика приращений</th>
-    </tr></thead><tbody>${rows.map(r=>`<tr${r===worst?' style="background:#f7dcd7"':''}><td>${esc(r.m)}</td><td>${r.n}</td><td>${r.d0} … ${r.d1}</td><td><b>${r.osad}</b></td><td>${r.speed!==null?r.speed.toFixed(1):'—'}</td><td>${r.lastSpeed!==null?r.lastSpeed.toFixed(1):'—'}</td><td>${dynBadge[dynByM[r.m]]||esc(dynByM[r.m]||'—')}</td></tr>`).join('')}</tbody></table>
-    <div class="note">Максимальная осадка — марка ${esc(worst.m)}: ${worst.osad} мм за период наблюдений. Положительные значения — подъём (вспучивание), отрицательные — осадка.${gmNote}</div>
+      <th>Марка</th><th style="width:11%">X, м</th><th style="width:11%">Y, м</th><th style="width:8%">H, м</th><th style="width:8%">Замеров</th><th style="width:16%">Период</th><th style="width:12%">Осадка с нач. набл., мм</th><th style="width:11%">Ср. скорость, мм/год</th><th style="width:12%">Скорость последнего цикла, мм/год</th><th style="width:11%">Динамика приращений</th>
+    </tr></thead><tbody>${rows.map(r=>`<tr${r===worst?' style="background:#f7dcd7"':''}><td>${esc(r.m)}</td>${kiaTds(o,r.m)}<td>${r.n}</td><td>${r.d0} … ${r.d1}</td><td><b>${r.osad}</b></td><td>${r.speed!==null?r.speed.toFixed(1):'—'}</td><td>${r.lastSpeed!==null?r.lastSpeed.toFixed(1):'—'}</td><td>${dynBadge[dynByM[r.m]]||esc(dynByM[r.m]||'—')}</td></tr>`).join('')}</tbody></table>
+    <div class="note">Максимальная осадка — марка ${esc(worst.m)}: ${worst.osad} мм за период наблюдений. Положительные значения — подъём (вспучивание), отрицательные — осадка.${gmNote} ${KIA_CRD_NOTE}</div>
     ${gi&&gi.nodamp.length?`<div class="warn-card"><b>Внимание:</b> по маркам ${gi.nodamp.map(esc).join(', ')} годовые приращения осадок не убывают на последних интервалах наблюдений${gi.prog.length?` (прогрессия: ${gi.prog.map(esc).join(', ')})`:''} — по критериям программы ГТМ это соответствует предупреждающему критерию К1 (незатухающие осадки); требуется внеочередной осмотр участков и уточнение причин (СП 305.1325800.2017; ГОСТ 31937-2024).</div>`:''}
     ${kkRows.length?`<div class="sect">Контрольные критерии К1/К2 программы ГТМ — деформационные показатели</div>
     <table class="rows static"><thead><tr><th style="width:20%">Сооружение / группа</th><th>Показатель</th><th style="width:22%">К1 (предупреждающий)</th><th style="width:22%">К2 (предельный)</th><th style="width:22%">Примечание / факт</th></tr></thead><tbody>${kkRows.map(r=>`<tr><td>${esc(r.g||'')}</td><td>${esc(r.p||'')}</td><td>${esc(r.k1||'')}</td><td>${esc(r.k2||'')}</td><td>${esc(r.n||'')}</td></tr>`).join('')}</tbody></table>
@@ -8554,8 +8577,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"uwOBh6ChFowNshOfN74NdQ==",ivV:"39/glFUsR69EROvf",wrapV:"sdOuVHrpW5E4UzFV/njYO1RNrTzPMo3xXd2N0XyfLagMlWXfb+ijqI6C+3e+ppuL",saltE:"Pt2bxFxFcw7KyOsDVuWSAQ==",ivE:"y2/XJOA3fMY25Kry",wrapE:"QJqDgK6ll9fhIkqoXs46EBuJWECwa7Vz2Jd2BY5W1UNnqJR2cFgCKsTHvD9QauaO",ivD:"4gVR4kXXQgkd1vUv"};
-const BUILD="ea27d0ce";
+const ENC={saltV:"2z4GYMB6Kf58pW+lhTJM8w==",ivV:"6QNi2hwn5/nldfbG",wrapV:"mqdJt104Jm13VtcoxtG+LlPmvhUC91BwnnPxStXf0EwSoCGI/RqvwqavV8vYur+S",saltE:"DmTAMdNKN9XfUtoGbjKllw==",ivE:"Utx//gh844QTdP7Y",wrapE:"WiJ81/7dGx9l8FVeUa6NVaVlhFpiWFCI5M409xR8nkjo1PNgTZrycWh7s01duzdE",ivD:"Y2iIj64c6+rpBnNQ"};
+const BUILD="245f39a8";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
