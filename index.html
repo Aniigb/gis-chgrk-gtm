@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=ff83339d"></script>
-<script src="db_p2.js?v=ff83339d"></script>
-<script src="db_p3.js?v=ff83339d"></script>
-<script src="db_p4.js?v=ff83339d"></script>
-<script src="db_p5.js?v=ff83339d"></script>
-<script src="db_p6.js?v=ff83339d"></script>
-<script src="db_p7.js?v=ff83339d"></script>
-<script src="db_p8.js?v=ff83339d"></script>
+<script src="db_p1.js?v=d638e6ae"></script>
+<script src="db_p2.js?v=d638e6ae"></script>
+<script src="db_p3.js?v=d638e6ae"></script>
+<script src="db_p4.js?v=d638e6ae"></script>
+<script src="db_p5.js?v=d638e6ae"></script>
+<script src="db_p6.js?v=d638e6ae"></script>
+<script src="db_p7.js?v=d638e6ae"></script>
+<script src="db_p8.js?v=d638e6ae"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -7654,7 +7654,7 @@ setTimeout(()=>{ try{
 const GS_STORE={j:'chgrk_gs_journal_v1', snap:'chgrk_gs_snap_v1', road:'chgrk_gs_road_v1', sens:'chgrk_gs_sensors_v1', out:'chgrk_gs_outbox_v1', ntf:'chgrk_gs_notify_v1', duty:'chgrk_gs_duty_v1', sched:'chgrk_gs_sched_v1', done:'chgrk_gs_done_v1', pav:'chgrk_gs_pav_v1'};
 function gsLoad(k,dflt){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?dflt:v; }catch(e){ return dflt; } }
 function gsSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
-let gsJournal=gsLoad(GS_STORE.j,[]), gsRoad=gsLoad(GS_STORE.road,{}), gsSens=gsLoad(GS_STORE.sens,{}), gsCur=null, gsRemote=false;
+let gsJournal=gsLoad(GS_STORE.j,[]), gsRoad=gsLoad(GS_STORE.road,{}), gsSens=gsLoad(GS_STORE.sens,{}), gsCur=null, gsRemote=false, gsAlertsDay='';
 let gsNotify=gsLoad(GS_STORE.ntf,[]), gsDuty=gsLoad(GS_STORE.duty,{name:'',phone:'',tg:'',mail:''});
 let gsSchedCfg=gsLoad(GS_STORE.sched,{}), kiaDone=gsLoad(GS_STORE.done,[]);
 let gsPav=gsLoad(GS_STORE.pav,{});
@@ -7809,8 +7809,8 @@ function gsDutyCard(){
     const ml=mail?`<a class="dbtn" href="mailto:${encodeURIComponent(mail)}?subject=${encodeURIComponent('ТРЕВОГА ГТМ: '+n.name)}&body=${t}">E-mail</a>`:'';
     return wa+tgl+ml||'<span class="mut">заполните контакты дежурного</span>';
   };
-  return `<div class="gsCard"><h3>📨 Уведомления дежурному — шлюз эскалации (этап Б4)</h3>
-    <div class="mut" style="margin-bottom:6px">При ухудшении статуса объекта до РИСК/КРИТИЧНО система автоматически формирует карточку уведомления с готовым текстом события. Отправка — одним кликом через приложения дежурного; получение подтверждается квитированием (фиксируется в журнале событий). Полностью серверная автоотправка без участия оператора возможна после подключения почтового шлюза / Telegram-бота на стороне сервера — в статическом контуре публикации технически недоступна.</div>
+  return `<div class="gsCard"><h3>📨 Уведомления дежурному — шлюз эскалации (этап Б4) <button class="dbtn" id="gsAlertsRefresh" title="Внеочередная сверка статусов объектов и очереди уведомлений" style="float:right;font-size:12px">⟳ обновить</button></h3>
+    <div class="mut" style="margin-bottom:6px">При ухудшении статуса объекта до РИСК/КРИТИЧНО система автоматически формирует карточку уведомления с готовым текстом события. Отправка — одним кликом через приложения дежурного; получение подтверждается квитированием (фиксируется в журнале событий). Полностью серверная автоотправка без участия оператора возможна после подключения почтового шлюза / Telegram-бота на стороне сервера — в статическом контуре публикации технически недоступна. Очередь уведомлений обновляется автоматически — при каждом новом событии, при открытии раздела и при смене даты; внеочередная сверка — кнопкой «⟳ обновить». Актуально на: ${new Date().toLocaleString('ru-RU')}.</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;font-size:12px;align-items:center;margin-bottom:8px">
       <b>Дежурный:</b> ${d.name?`<b>${esc(d.name)}</b>`:'<span class="mut">не назначен</span>'}
       ${d.phone?`<span class="mut">☎ ${esc(d.phone)}</span>`:''} ${d.tg?`<span class="mut">✈ @${esc(tg)}</span>`:''} ${d.mail?`<span class="mut">✉ ${esc(d.mail)}</span>`:''}
@@ -7873,7 +7873,7 @@ function gsViewAlerts(){
     <span class="gsPill" style="background:#e08a00">РИСК: ${risk.length}</span>
     <span class="gsPill" style="background:#2e7d32">НОРМА: ${norm.length}</span>
     <span class="gsPill" style="background:#8a8a8a">без данных: ${nod.length}</span>
-    <span class="mut" style="margin-left:auto">автосверка статусов каждую минуту · событий в журнале: ${gsJournal.length}</span>
+    <span class="mut" style="margin-left:auto">данные на ${new Date().toLocaleString('ru-RU')} · автосверка статусов каждую минуту · окно обновляется при новых событиях и смене даты · событий в журнале: ${gsJournal.length}</span>
   </div></div>
   <div class="gsCard"><h3>Активные превышения контрольных критериев</h3>
     ${active.length?`<table class="gsTbl"><tr><th>Объект</th><th>Статус</th><th>Сработавшие правила</th></tr>${active.map(s=>{
@@ -8465,12 +8465,13 @@ function gsBindCommon(){
   const bA=document.getElementById('pavActBtn'); if(bA) bA.onclick=()=>{ pKomSave(); pavActPdf(); };
   const dE=document.getElementById('gsDutyEdit'); if(dE) dE.onclick=()=>{ const f=document.getElementById('gsDutyForm'); if(f) f.style.display=(f.style.display==='none'||!f.style.display)?'':'none'; };
   const dS=document.getElementById('gsDutySave'); if(dS) dS.onclick=()=>{ gsDuty={name:document.getElementById('gsDutyName').value.trim(), phone:document.getElementById('gsDutyPhone').value.trim(), tg:document.getElementById('gsDutyTg').value.trim().replace(/^@/,''), mail:document.getElementById('gsDutyMail').value.trim()}; gsSave(GS_STORE.duty,gsDuty); gsOpen('alerts',true); };
+  const aRf=document.getElementById('gsAlertsRefresh'); if(aRf) aRf.onclick=()=>{ gsJournalSync(); gsOpen('alerts',true); }; // ручная внеочередная сверка тревог и уведомлений
   d.querySelectorAll('[data-gsack]').forEach(el=>el.addEventListener('click',()=>gsAckNtf(el.dataset.gsack)));
 }
 function gsOpen(key, silent){
   const m=document.getElementById('gsModal');
   if(silent && m.style.display!=='block') return; // тихая синхронизация — только когда окно раздела открыто
-  gsCur=key;
+  gsCur=key; if(key==='alerts') gsAlertsDay=todayKey(); // дата, на которую отрисован раздел тревог — для автообновления при смене суток
   document.querySelectorAll('#gsMenu button').forEach(b=>b.classList.toggle('on', b.dataset.gs===key));
   let html=GS_VIEWS[key](); // карточка объекта за окном сохраняется — curObj не сбрасываем
   const mt=html.match(/^\s*<h2>([\s\S]*?)<\/h2>/); // заголовок раздела — в шапку окна, без дублирования в теле
@@ -8496,6 +8497,7 @@ gsJournalSync();
 setTimeout(gsJournalPull,0); // после полной инициализации скрипта
 setInterval(gsJournalSync,60000);
 setInterval(gsJournalPull,300000); // сверка серверного журнала каждые 5 минут
+setInterval(()=>{ if(gsCur==='alerts'&&gsAlertsDay&&gsAlertsDay!==todayKey()) gsOpen('alerts',true); }, 30*1000); // раздел «Тревоги и эскалация»: автообновление окна при смене даты
 
 /* ---------- защищённый режим: запрет копирования/скачивания/скриншотов (скачивание разрешено только для презентации) ---------- */
 (function(){
@@ -8550,8 +8552,8 @@ setInterval(gsJournalPull,300000); // сверка серверного журн
 })();
 
 };
-const ENC={saltV:"1hcXoTXODCvfcYq+/O00wA==",ivV:"XvbEErvCIcxqNidi",wrapV:"hsu2Efw1FPDyYSRrHOIJ0BkYw8Shbt12QD0OZZPVgZfvg8/pAlOl0V/d5YAqT+/k",saltE:"fGM3RkCk0ZeJeX5DQ/YF2w==",ivE:"WCaHTUg9YAho1f93",wrapE:"1Tx1OLXRHrdf8B9R1/TuvEi3lsRdVcMMCLBCXCFn+eUeceENA3CvNnFLK/SAsIjc",ivD:"aFBMbTuingfvHePO"};
-const BUILD="ff83339d";
+const ENC={saltV:"zeOOg6YVfWnSHUh7/PNdxw==",ivV:"lxkiBC0Z4rbEQSUD",wrapV:"3GfxVTVBaCqXXSnrIOeyZwbOt8yG6mkqPTekN4c86biT7x1i+oe/eEb97Cq1XMi3",saltE:"d0QZcRXYJh/fzzpzRUQDPw==",ivE:"tGxsHv1GcH49gAdX",wrapE:"CAYH76yomxGp27kaGz7EjCecUiY9bkK9AyvrveM5oqslGPky2OVOHrpLF3sJIpq1",ivD:"p63YROxx+JB9w+kX"};
+const BUILD="d638e6ae";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
