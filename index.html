@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=d1835c3c"></script>
-<script src="db_p2.js?v=d1835c3c"></script>
-<script src="db_p3.js?v=d1835c3c"></script>
-<script src="db_p4.js?v=d1835c3c"></script>
-<script src="db_p5.js?v=d1835c3c"></script>
-<script src="db_p6.js?v=d1835c3c"></script>
-<script src="db_p7.js?v=d1835c3c"></script>
-<script src="db_p8.js?v=d1835c3c"></script>
+<script src="db_p1.js?v=1627c28b"></script>
+<script src="db_p2.js?v=1627c28b"></script>
+<script src="db_p3.js?v=1627c28b"></script>
+<script src="db_p4.js?v=1627c28b"></script>
+<script src="db_p5.js?v=1627c28b"></script>
+<script src="db_p6.js?v=1627c28b"></script>
+<script src="db_p7.js?v=1627c28b"></script>
+<script src="db_p8.js?v=1627c28b"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -851,9 +851,8 @@ const DECL_OVR={};
 const NAME_DECL={};
 (DB.objects||[]).forEach(o=>{ if(NAME_DECL[o.id]) o.nameDecl=NAME_DECL[o.id]; });
 
-/* ---------- термометрия этапов инженерных изысканий (дословные сведения из текстовых слоёв отчётов ИГИ
-   площадки Черногорского ГОК; заполняется по мере подключения отчётов к базе) ---------- */
-const IGI_THERM={};
+/* ---------- термометрия этапа инженерных изысканий (2022): данные в db.js → o.igiTherm
+   (70 скважин CK-001…CK-085 по 10 сооружениям; источники — табл. 6.1, прил. 6, прил. 25 отчёта ИГИ 2022 г.) ---------- */
 /* архивные таблицы скважин этапов изысканий (резерв под подключение приложений отчётов ИГИ) */
 const G07_WELLS=[];
 function saveTH(){ localStorage.setItem('gtm_th', JSON.stringify(TH)); }
@@ -1207,10 +1206,10 @@ if(window.GEO_LAYERS){
   }
   if(GEO_LAYERS.opp) geoOverlays[GEO_LAYERS.opp.name].addTo(map); // ортофотоплан 2023 — включён по умолчанию
 }
-const hydroGroup=L.layerGroup(), thermGroup=L.layerGroup(), hydroOgGroup=L.layerGroup(), fpGroup=L.layerGroup(), runoffGroup=L.layerGroup(), kadGroup=L.layerGroup(), igiWellsGroup=L.featureGroup(), kiaTermGroup=L.featureGroup(), kiaPiezoGroup=L.featureGroup(), kiaMarkGroup=L.featureGroup();
-L.control.layers({'Спутник (Esri)':satTiles,'Карта (OSM)':osmTiles},Object.assign(geoOverlays,{'🌡 Тепловая карта грунтов':thermGroup,'🌊 Расчётная гидросеть (модель стока, ЦМР)':runoffGroup,'🗺 Кадастровые границы ЗУ (НСПД/ЕГРН)':kadGroup,'🕳 Скважины и КИА (местные СК → WGS-84)':igiWellsGroup,'🌡 Термоскважины (сеть КИА)':kiaTermGroup,'💧 Пьезометры и рейки (сеть КИА)':kiaPiezoGroup,'📐 Марки и реперы (сеть КИА)':kiaMarkGroup}),{position:'topright'}).addTo(map);
-map.on('overlayadd',e=>{ if(e.layer===thermGroup) thermToggle(true); if(e.layer===runoffGroup) runoffNote(true); if(e.layer===igiWellsGroup) igiWellsLayer(true); if(e.layer===kiaTermGroup) kiaNetLayer('thermal',true); if(e.layer===kiaPiezoGroup) kiaNetLayer('piezo',true); if(e.layer===kiaMarkGroup) kiaNetLayer('marks',true); });
-map.on('overlayremove',e=>{ if(e.layer===thermGroup) thermToggle(false); if(e.layer===runoffGroup) runoffNote(false); });
+const hydroGroup=L.layerGroup(), thermGroup=L.layerGroup(), hydroOgGroup=L.layerGroup(), fpGroup=L.layerGroup(), runoffGroup=L.layerGroup(), kadGroup=L.layerGroup(), igiWellsGroup=L.featureGroup(), kiaTermGroup=L.featureGroup(), kiaPiezoGroup=L.featureGroup(), kiaMarkGroup=L.featureGroup(), igiThermGroup=L.featureGroup();
+L.control.layers({'Спутник (Esri)':satTiles,'Карта (OSM)':osmTiles},Object.assign(geoOverlays,{'🌡 Тепловая карта грунтов':thermGroup,'🌊 Расчётная гидросеть (модель стока, ЦМР)':runoffGroup,'🗺 Кадастровые границы ЗУ (НСПД/ЕГРН)':kadGroup,'🕳 Скважины и КИА (местные СК → WGS-84)':igiWellsGroup,'🌡 Термоскважины (сеть КИА)':kiaTermGroup,'💧 Пьезометры и рейки (сеть КИА)':kiaPiezoGroup,'📐 Марки и реперы (сеть КИА)':kiaMarkGroup,'🧊 Термометрия на этапе изысканий (2022)':igiThermGroup}),{position:'topright'}).addTo(map);
+map.on('overlayadd',e=>{ if(e.layer===thermGroup) thermToggle(true); if(e.layer===runoffGroup) runoffNote(true); if(e.layer===igiWellsGroup) igiWellsLayer(true); if(e.layer===kiaTermGroup) kiaNetLayer('thermal',true); if(e.layer===kiaPiezoGroup) kiaNetLayer('piezo',true); if(e.layer===kiaMarkGroup) kiaNetLayer('marks',true); if(e.layer===igiThermGroup) igiThermNetLayer(true); });
+map.on('overlayremove',e=>{ if(e.layer===thermGroup) thermToggle(false); if(e.layer===runoffGroup) runoffNote(false); if(e.layer===igiThermGroup) igiThermCtlShow(false); });
 /* ---------- слой расчётной гидросети (модель поверхностного стока по ЦМР GLO-30) ---------- */
 if(window.STREAMS&&STREAMS.features){
   const stCol=a=>a>=10?'#0057c2':(a>=3?'#2f7fc4':'#7fb3d9');
@@ -1300,6 +1299,89 @@ function kiaNetLayer(net,notify){
   }
 }
 window.kiaOpenCard=function(id){ const i=(DB.objects||[]).findIndex(x=>x.id===id); if(i>=0) select(i); };
+
+/* ---------- слой «Термометрия на этапе изысканий (2022)»: температурное поле по глубинам (o.igiTherm) ---------- */
+let igiThermDepth=10, igiThermCtl=null;
+const IGT_DEPTHS=[0.5,1,2,3,5,7,10,15,20,29];
+const IGT_SCALE=[[-10,'#08306b'],[-5,'#2b6cb0'],[-3,'#41b6c4'],[-1,'#a1dab4'],[-0.01,'#e9f7c9'],[0,'#ffe9a8'],[0.5,'#fed976'],[2,'#fd8d3c'],[5,'#e31a1c']];
+function igiTColor(t){
+  if(t==null) return '#9aa3b2';
+  const S=IGT_SCALE;
+  if(t<=S[0][0]) return S[0][1];
+  for(let i=1;i<S.length;i++){
+    if(t<=S[i][0]){
+      const [t0,c0]=S[i-1],[t1,c1]=S[i], f=(t-t0)/(t1-t0||1);
+      const h0=parseInt(c0.slice(1),16), h1=parseInt(c1.slice(1),16);
+      const r=Math.round(((h0>>16)&255)+(((h1>>16)&255)-((h0>>16)&255))*f);
+      const g=Math.round(((h0>>8)&255)+(((h1>>8)&255)-((h0>>8)&255))*f);
+      const b=Math.round((h0&255)+((h1&255)-(h0&255))*f);
+      return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+    }
+  }
+  return S[S.length-1][1];
+}
+function igiTAt(prof,dep){ // T на глубине dep: точное совпадение или линейная интерполяция между соседними глубинами (без экстраполяции)
+  if(!prof||!prof.length) return null;
+  let prev=null;
+  for(const p of prof){
+    if(p[0]===dep) return p[1];
+    if(p[0]>dep){
+      if(prev&&prev[0]<dep){ const f=(dep-prev[0])/(p[0]-prev[0]); return +(prev[1]+(p[1]-prev[1])*f).toFixed(2); }
+      return null;
+    }
+    prev=p;
+  }
+  return null;
+}
+function igiThermNetLayer(notify){
+  igiThermGroup.clearLayers();
+  let n=0, noT=0;
+  (DB.objects||[]).forEach(o=>{
+    (o.igiTherm||[]).forEach(r=>{
+      if(r.x==null||r.y==null) return;
+      const ll=skLocalToWgs({sys:'МСК-165',x:r.x,y:r.y}); if(!ll) return;
+      const t=igiTAt(r.prof,igiThermDepth);
+      if(t==null) noT++;
+      n++;
+      L.circleMarker([ll.lat,ll.lon],{radius:6,color:'#1c2430',weight:.9,fillColor:igiTColor(t),fillOpacity:.92})
+        .bindPopup('<b>🧊 '+esc(r.w)+'</b> · '+esc(o.a)
+          +'<br>T на глубине <b>'+String(igiThermDepth).replace('.',',')+' м</b>: <b>'+(t==null?'— (ниже/выше диапазона замера)':String(t.toFixed(2)).replace('.',',')+' °C')+'</b>'
+          +(t==null?'':' <span style="color:#888">(интерполяция профиля)</span>')
+          +'<br>T на контр. глубине ('+String(r.rz).replace('.',',')+' м, табл. 6.1): <b>'+String(r.tz.toFixed(2)).replace('.',',')+' °C</b>'
+          +'<br>Глубина скв.: '+fmt(r.dep,' м')+' · H устья: '+(r.h!=null?String(r.h.toFixed(2)).replace('.',',')+' м':'—')
+          +'<br>Бурение: '+esc(r.dtb||'—')+' · замер: '+esc(r.dtz||'—')
+          +'<br><span style="color:#888">Источник: отчёт ИГИ 2022, табл. 6.1, прил. 6, прил. 25 (л. '+fmt(r.page)+')</span>'
+          +'<br><button class="dbtn" style="margin-top:5px" onclick="kiaOpenCard(\''+o.id+'\')">Открыть карточку объекта</button>')
+        .bindTooltip(esc(r.w)+' · '+(t==null?'—':String(t.toFixed(1)).replace('.',',')+'°'),{direction:'top',offset:[0,-6]})
+        .addTo(igiThermGroup);
+    });
+  });
+  if(notify){
+    if(n) map.fitBounds(igiThermGroup.getBounds().pad(0.15));
+    else alert('Слой «Термометрия на этапе изысканий»: скважины с координатами отсутствуют.');
+  }
+  igiThermCtlShow(true);
+}
+function igiThermCtlShow(on){ // контрол выбора глубины + легенда шкалы (только при активном слое)
+  if(on){
+    if(igiThermCtl){ igiThermCtl.remove(); igiThermCtl=null; }
+    igiThermCtl=L.control({position:'bottomleft'});
+    igiThermCtl.onAdd=function(){
+      const d=L.DomUtil.create('div','igt-ctl');
+      d.style.cssText='background:rgba(255,255,255,.93);padding:7px 9px;border-radius:6px;box-shadow:0 1px 6px rgba(0,0,0,.3);font:12px/1.5 "Segoe UI",sans-serif;max-width:300px';
+      d.innerHTML='<div style="font-weight:600;margin-bottom:4px">🧊 Термометрия ИГИ 2022 — глубина, м</div>'
+        +'<div>'+IGT_DEPTHS.map(x=>'<button data-d="'+x+'" style="margin:1px 3px 1px 0;padding:2px 7px;font-size:11.5px;cursor:pointer;border:1px solid '+(x===igiThermDepth?'#14295E;background:#14295E;color:#fff':'#b9c2d0;background:#fff')+';border-radius:4px">'+String(x).replace('.',',')+'</button>').join('')+'</div>'
+        +'<div style="margin-top:6px;display:flex;align-items:center;gap:0">'
+        +IGT_SCALE.map(s=>'<div style="flex:1;height:9px;background:'+s[1]+'" title="'+s[0]+' °C"></div>').join('')+'</div>'
+        +'<div style="display:flex;justify-content:space-between;font-size:10px;color:#555"><span>−10</span><span>−5</span><span>−3</span><span>−1</span><span>0</span><span>+0,5</span><span>+2</span><span>+5 °C</span></div>'
+        +'<div style="font-size:10px;color:#777;margin-top:3px">Цвет маркера — T грунта на выбранной глубине (интерполяция профиля замера, весна 2022)</div>';
+      L.DomEvent.disableClickPropagation(d);
+      d.querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>{ igiThermDepth=+b.dataset.d; igiThermNetLayer(false); });
+      return d;
+    };
+    igiThermCtl.addTo(map);
+  } else if(igiThermCtl){ igiThermCtl.remove(); igiThermCtl=null; }
+}
 
 /* ---------- слои гидрологической модели поверхностного стока (D8): город — ЦМР Copernicus 30 м; Оганер — ЦМР 5 см (тест) ---------- */
 const hydroSets={
@@ -2699,6 +2781,12 @@ function tabGtmGts(o, el){
   <table class="rows static"><thead><tr>
     <th>Средство наблюдений</th><th style="width:22%">План (КИА / проект)</th><th style="width:14%">Факт в базе</th><th style="width:22%">Заключение</th>
   </tr></thead><tbody>${netRows}</tbody></table>
+  ${(()=>{ const wp=NET.flatMap(([nm,k,pk])=>(pts[pk]||[]).map(p=>({p,kind:pk}))).filter(x=>x.p.lat!=null||(x.p.x!=null&&x.p.y!=null));
+    return wp.length?`
+  <div class="sect">Схема размещения точек КИА <span class="note">· с координатами: ${wp.length}; МСК-165 → WGS-84 (по параметрам перехода)</span></div>
+  <div id="kiaMiniMap" style="height:300px;border:1px solid #d5dae3;border-radius:6px"></div>
+  <style>.kiamini-lbl{font:600 9.5px/1.1 'Segoe UI',sans-serif;color:#233;background:rgba(255,255,255,.78);border:none;box-shadow:none;padding:0 2px;border-radius:2px}</style>
+  <div class="note">Клик по маркеру — тип и номер точки. Полный просмотр — на общей карте: слои «🌡 Термоскважины (сеть КИА)», «💧 Пьезометры и рейки», «📐 Марки и реперы».</div>`:''; })()}
   <div class="sect">Периодичность наблюдений (устанавливается программой ГТМ ЧГОК)</div>
   <table class="kv">
     <tr><td>Термометрия оснований (термоскважины)</td><td>${sel(o,'gtm','freq_term','',['','2 раза в год (конец лета, середина зимы)','4 раза в год','1 раз в месяц','иная по проекту'])}</td></tr>
@@ -2719,6 +2807,26 @@ function tabGtmGts(o, el){
     <button class="wbtn" id="gtmGoPass">→ Паспорт объекта</button>
   </div>`;
   wireEd(o, el, 'gtm');
+  const mmEl=el.querySelector('#kiaMiniMap');
+  if(mmEl){ // мини-карта размещения точек КИА объекта (только чтение)
+    const wp=NET.flatMap(([nm,k,pk])=>(pts[pk]||[]).map(p=>({p,kind:pk}))).filter(x=>x.p.lat!=null||(x.p.x!=null&&x.p.y!=null));
+    const mm=L.map(mmEl,{zoomControl:true,scrollWheelZoom:false,attributionControl:false});
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19}).addTo(mm);
+    const grp=L.featureGroup().addTo(mm);
+    const KC={thermal:['#b34a00','#e67e22'],piezo:['#14567f','#2f8fc4'],gauge:['#14567f','#2f8fc4'],marks:['#4a2f8f','#8a5cf6'],repers:['#4a2f8f','#8a5cf6'],obs:['#4a2f8f','#8a5cf6']};
+    const TL={thermal:'Термометрическая скважина',piezo:'Пьезометрическая скважина',gauge:'Водомерная рейка',marks:'Деформационная марка',repers:'Репер',obs:'Наблюдательная скважина'};
+    wp.forEach(({p,kind})=>{
+      const ll=p.lat!=null?{lat:p.lat,lon:p.lon}:skLocalToWgs({sys:'МСК-165',x:p.x,y:p.y});
+      if(!ll) return;
+      const c=KC[kind]||['#555','#999'];
+      L.circleMarker([ll.lat,ll.lon],{radius:5,color:c[0],weight:1.2,fillColor:c[1],fillOpacity:.9})
+        .bindTooltip(esc(String(p.n)),{permanent:true,direction:'bottom',offset:[0,6],className:'kiamini-lbl'})
+        .bindPopup('<b>'+esc(TL[kind]||'Точка КИА')+' '+esc(String(p.n))+'</b>'+(p.h!=null?'<br>H = '+String(p.h).replace('.',',')+' м':'')+(p.dep?'<br>Глубина: '+p.dep+' м':''))
+        .addTo(grp);
+    });
+    if(grp.getLayers().length) mm.fitBounds(grp.getBounds().pad(0.2));
+    setTimeout(()=>mm.invalidateSize(),80);
+  }
   el.querySelectorAll('.ed[data-scope="gtm"]').forEach(i2=>i2.addEventListener('change',()=>renderTab(o)));
   el.querySelector('#gtmGoKK').onclick=()=>{curTab='kk'; renderDetail(o);};
   el.querySelector('#gtmGoTherm').onclick=()=>{curTab='geoterm'; renderDetail(o);};
@@ -3125,22 +3233,69 @@ function tabGtsDocs(o, el){
   renderRows2(o, el.querySelector('#igiTbl'), 'igi', ['report','year','org','wells','grunt','ugv','note'], null, el.querySelector('#igiAdd'));
   el.querySelectorAll('.vbtn').forEach(b=>b.onclick=()=>txtOpen(b.dataset.store,b.dataset.id));
 }
-function igiThermHtml(o){ // блок «Термометрия этапов изысканий» — дословные сведения из отчётов ИГИ (IGI_THERM)
-  const items=IGI_THERM[o.id]; if(!items||!items.length) return '';
-  const wellTbl=(wl)=>{
-    const rows=wl.rowsSrc==='g07_wells'?G07_WELLS:(wl.rows||[]);
-    return `<div class="note" style="margin:8px 0 2px">${esc(wl.cap)} · строк: ${rows.length}</div>
-    <div class="wt-scroll"><table class="wtab"><thead><tr>${wl.cols.map(c=>'<th>'+esc(c)+'</th>').join('')}</tr></thead>
-    <tbody>${rows.map(r=>'<tr>'+r.map((c,i)=>'<td'+(i===0?' style="text-align:left"':'')+'>'+esc(String(c))+'</td>').join('')+'</tr>').join('')}</tbody></table></div>`;
-  };
-  return `<div class="note">Базовое тепловое состояние до начала режимного мониторинга. Сведения дословно из текстовых слоёв отчётов ИГИ (со ссылками на страницы). Плановые координаты X, Y скважин этапов изысканий приведены в ведомостях горных выработок и на планшетах графической части отчётов и в текстовый слой не входят — они доступны в оригиналах из архива исходных данных ГТМ (вкладка «Документация»); доступные в тексте абс. отметки устьев приведены в таблицах ниже.</div>
-  ${items.map(it=>`<details class="igt"><summary><b>${esc(it.t)}</b> · ${esc(it.y)}</summary>
-    <div class="igt-body">
-      ${it.f?`<button class="vbtn" data-igif="${esc(it.f)}" style="float:right">📖 текст отчёта</button>`:''}
-      <div class="igf"><b>Объём термометрии:</b> ${esc(it.scope)}</div>
-      ${(it.facts||[]).map(f=>`<div class="igf">• ${esc(f)}</div>`).join('')}
-      ${it.wells?wellTbl(it.wells):''}
-    </div></details>`).join('')}`;
+function igiThermHtml(o){ // «Термометрия этапа ИГИ (2022)»: реестр скважин с координатами + температурные листы (o.igiTherm)
+  const items=o.igiTherm||[]; if(!items.length) return '';
+  const QL={full:'полный лист',part:'частичный лист',chart:'по графику'};
+  const tbl='<table class="rows static"><thead><tr><th style="text-align:left">Скважина</th><th style="width:11%">X, м</th><th style="width:12%">Y, м</th><th style="width:9%">H устья, м</th><th style="width:8%">Глубина, м</th><th style="width:11%">Бурение</th><th style="width:11%">Замер</th><th style="width:12%">T на контр. глубине</th><th style="width:8%">Лист прил. 25</th></tr></thead><tbody>'
+    +items.map(r=>'<tr><td style="text-align:left"><b>'+esc(r.w)+'</b></td><td>'+(r.x!=null?r.x.toFixed(2):'—')+'</td><td>'+(r.y!=null?r.y.toFixed(2):'—')+'</td><td>'+(r.h!=null?r.h.toFixed(2).replace('.',','):'—')+'</td><td>'+fmt(r.dep)+'</td><td>'+esc(r.dtb||'—')+'</td><td>'+esc(r.dtz||'—')+'</td><td><b>'+(r.tz!=null?String(r.tz.toFixed(2)).replace('.',','):'—')+'</b> <span class="note">°C ('+fmt(r.rz)+' м)</span></td><td>'+fmt(r.page)+'</td></tr>').join('')
+    +'</tbody></table>';
+  const sheets=items.map((r,i)=>{
+    const cells=r.prof.map(p=>'<td style="width:10%">'+String(p[0]).replace('.',',')+'</td><td style="width:10%;text-align:right;padding-right:14px'+(p[1]>0?';color:#c0392b;font-weight:600':'')+'">'+String(p[1].toFixed(2)).replace('.',',')+'</td>').join('');
+    const rows=[];
+    const per=5; // пар «глубина/Т» в строке
+    for(let k=0;k<r.prof.length;k+=per){
+      rows.push('<tr>'+r.prof.slice(k,k+per).map(p=>'<td style="width:9%;color:#6b7486">'+String(p[0]).replace('.',',')+'</td><td style="width:11%;text-align:right;padding-right:12px'+(p[1]>0?';color:#c0392b;font-weight:600':'')+'">'+String(p[1].toFixed(2)).replace('.',',')+'</td>').join('')+'</tr>');
+    }
+    return '<details class="wt igt-well" data-i="'+i+'"><summary><b>🌡 Температурный лист '+esc(r.w)+'</b> <span class="note">· замер '+esc(r.dtz||'—')+' · точек: '+r.prof.length+' ('+(QL[r.q]||r.q)+')</span></summary><div class="wt-scroll">'
+      +'<canvas class="plot igt-cv" id="igtCv_'+o.id+'_'+i+'"></canvas>'
+      +'<div class="note" style="margin:6px 0 2px">Пары «глубина, м — T, °C» по листу прил. 25 (пустые ячейки исходника опущены; красным — положительные температуры):</div>'
+      +'<table class="rows static" style="font-size:11.5px"><tbody>'+rows.join('')+'</tbody></table></div></details>';
+  }).join('');
+  return '<div class="note">Базовое тепловое состояние основания до начала режимного мониторинга: одиночная термометрия скважин на этапе инженерных изысканий (весна 2022 г., до ввода объектов). Источники: табл. 6.1 (сводная), прил. 6 (координаты выработок, МСК-165; H — Балтийская 1977), прил. 25 (температурные листы) отчёта ИГИ 2022 г. T на контр. глубине — на забое скважины (глубина ≤ 10 м) либо на глубине 10 м (НГК) — по табл. 6.1. Просмотр на карте: слой «🌡 Термометрия на этапе изысканий».</div>'
+    +'<div class="sect" style="margin-top:2px">Реестр термометрических скважин этапа ИГИ · '+items.length+' скв.</div>'+tbl
+    +'<div class="sect" style="margin-top:10px">Температурные листы скважин (прил. 25) — раскрываются кликом</div>'+sheets;
+}
+function drawIgiProf(cv, rec, o){ // ГОСТ-график профиля температуры скважины ИГИ (один замер)
+  const ctx=cv.getContext('2d');
+  const W=cv.clientWidth||620, H=400;
+  cv.width=W*2; cv.height=H*2; cv.style.height=H+'px'; ctx.scale(2,2);
+  ctx.fillStyle='#fff'; ctx.fillRect(0,0,W,H);
+  const pts=rec.prof||[]; if(!pts.length) return;
+  let tmin=Math.min(0,...pts.map(p=>p[1])), tmax=Math.max(0.5,...pts.map(p=>p[1]));
+  tmin=Math.floor(tmin-0.5); tmax=Math.ceil(tmax+0.5);
+  let dmax=Math.max(...pts.map(p=>p[0]), rec.dep||0); dmax=Math.max(5,Math.ceil(dmax/5)*5);
+  const L=56,R=14,T=66,B=30;
+  const px=t=>L+(t-tmin)/(tmax-tmin)*(W-L-R);
+  const py=d=>T+d/dmax*(H-T-B);
+  ctx.strokeStyle='#000'; ctx.fillStyle='#000'; ctx.lineWidth=1;
+  ctx.strokeRect(L,T,W-L-R,H-T-B);
+  ctx.font='10px "Times New Roman",serif'; ctx.textAlign='center';
+  for(let t=tmin;t<=tmax;t++){
+    ctx.beginPath();ctx.moveTo(px(t),T);ctx.lineTo(px(t),T-6);ctx.stroke();
+    ctx.fillText(t.toFixed(0),px(t),T-9);
+    ctx.beginPath();ctx.moveTo(px(t),T);ctx.lineTo(px(t),H-B);ctx.strokeStyle='#e3e3e3';ctx.stroke();ctx.strokeStyle='#000';
+  }
+  ctx.font='italic 11px "Times New Roman",serif'; ctx.fillText('t, °C',(L+W-R)/2,T-26);
+  ctx.textAlign='right'; ctx.font='10px "Times New Roman",serif';
+  for(let d=0;d<=dmax;d++){
+    ctx.beginPath();ctx.moveTo(L,py(d));ctx.lineTo(L-6,py(d));ctx.stroke();
+    if(d%5===0||dmax<=10) ctx.fillText(d,L-9,py(d)+3);
+  }
+  ctx.save(); ctx.translate(14,(T+H-B)/2); ctx.rotate(-Math.PI/2);
+  ctx.textAlign='center'; ctx.font='italic 11px "Times New Roman",serif'; ctx.fillText('d, м',0,0); ctx.restore();
+  ctx.strokeStyle='#000'; ctx.lineWidth=1.5;
+  ctx.beginPath();ctx.moveTo(px(0),T);ctx.lineTo(px(0),H-B);ctx.stroke(); ctx.lineWidth=1;
+  ctx.textAlign='left'; ctx.font='11px "Times New Roman",serif';
+  ctx.fillText('Объект: '+o.a, 10, 15);
+  ctx.fillText('Скважина № '+rec.w+(rec.dep?(', глубина '+rec.dep+' м'):'')+(rec.h!=null?(', H устья '+String(rec.h.toFixed(2)).replace('.',',')+' м'):''), 10, 30);
+  ctx.fillText('Дата бурения: '+(rec.dtb||'—')+' · дата замера: '+(rec.dtz||'—'), 10, 45);
+  ctx.textAlign='right'; ctx.fillText('Отчёт ИГИ 2022, прил. 25, л. '+fmt(rec.page), W-10, 15);
+  ctx.strokeStyle='#14295E'; ctx.fillStyle='#14295E'; ctx.lineWidth=1.6;
+  ctx.beginPath();
+  pts.forEach((p,i)=>{const x=px(p[1]),y=py(p[0]); i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+  ctx.stroke();
+  pts.forEach(p=>{ctx.beginPath();ctx.arc(px(p[1]),py(p[0]),2.3,0,7);ctx.fill();});
+  ctx.lineWidth=1;
 }
 /* --- состояние раскрытия подразделов термометрии (сохраняется между перерисовками карточки) --- */
 const twOpen=new Set(['prof']);
@@ -3231,9 +3386,17 @@ function tabGeoterm(o, el){
   } else {
     el.innerHTML = '<div class="empty" style="text-align:left;padding:8px 0">Числовые замеры по объекту в файлах не найдены — запись зарезервирована в структуре БД.<br>Замеры можно добавить через «⬆ Загрузка данных» в шапке.</div>';
   }
-  if(IGI_THERM[o.id]&&IGI_THERM[o.id].length){
-    el.insertAdjacentHTML('beforeend', sec('igi','📐','Термометрия этапов инженерных изысканий', IGI_THERM[o.id].length+' этап. · базовое тепловое состояние', igiThermHtml(o)));
-    el.querySelectorAll('[data-igif]').forEach(b=>b.onclick=()=>txtOpen('igi_txt', b.getAttribute('data-igif')));
+  if(o.igiTherm&&o.igiTherm.length){
+    el.insertAdjacentHTML('beforeend', sec('igi','📐','Термометрия этапа инженерных изысканий (2022)', o.igiTherm.length+' скв. · базовое тепловое состояние', igiThermHtml(o)));
+    el.querySelectorAll('.igt-well').forEach(dt=>{ // ленивая отрисовка ГОСТ-профиля при раскрытии листа
+      dt.addEventListener('toggle',()=>{
+        if(dt.open&&!dt.dataset.drawn){ dt.dataset.drawn='1';
+          const i=+dt.dataset.i;
+          const cv=document.getElementById('igtCv_'+o.id+'_'+i);
+          if(cv&&o.igiTherm[i]) drawIgiProf(cv, o.igiTherm[i], o);
+        }
+      });
+    });
   }
   /* навигатор по подразделам + ленивая отрисовка при раскрытии + восстановление состояния */
   const nav=document.getElementById('twNav');
@@ -8630,8 +8793,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"qqFu35dBRoE0dhEQBoRMxw==",ivV:"P/7KukWtOjhmOl4+",wrapV:"cmpZG3BWn+QcFe+ZFHZ58z+5MX/pBkhzBKv3QdLUdoNKqklnwk3XpkJ7N+HPm8FO",saltE:"Ix9VOxsZ5t4YtEuUlDTQpw==",ivE:"XRaG/0EMdG65cHfM",wrapE:"tlCIsUg2UrEW1RsFfYrq8dgZiNAIPM0Wlc+LreLkM+BIvXJ8QwVfiioE2eWpGrK4",ivD:"T/o3LSYwQNP8Sb6g"};
-const BUILD="d1835c3c";
+const ENC={saltV:"A2NyDgDEq9UQBlTK1oS+CA==",ivV:"ubKYhQBHXCO1smV6",wrapV:"yKoZzc2lrptze6b+qb6fXlQvtA9ESAuXIfM0QfrGwsziQ5FwH3htmysvyFQ0r6Nj",saltE:"Nl4uz//lqbtdfDCKH/THrQ==",ivE:"zS4t1vt9pSm7xUWW",wrapE:"84caVh+D1dDrnQDo/0Fy5wvTmoL8RYDhrxnxCzTVc9CpRIf60pathuXGgbisqfFd",ivD:"yYTsxKqrhDSzxW5F"};
+const BUILD="1627c28b";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
