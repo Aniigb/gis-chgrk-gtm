@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=245f39a8"></script>
-<script src="db_p2.js?v=245f39a8"></script>
-<script src="db_p3.js?v=245f39a8"></script>
-<script src="db_p4.js?v=245f39a8"></script>
-<script src="db_p5.js?v=245f39a8"></script>
-<script src="db_p6.js?v=245f39a8"></script>
-<script src="db_p7.js?v=245f39a8"></script>
-<script src="db_p8.js?v=245f39a8"></script>
+<script src="db_p1.js?v=d1835c3c"></script>
+<script src="db_p2.js?v=d1835c3c"></script>
+<script src="db_p3.js?v=d1835c3c"></script>
+<script src="db_p4.js?v=d1835c3c"></script>
+<script src="db_p5.js?v=d1835c3c"></script>
+<script src="db_p6.js?v=d1835c3c"></script>
+<script src="db_p7.js?v=d1835c3c"></script>
+<script src="db_p8.js?v=d1835c3c"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1207,9 +1207,9 @@ if(window.GEO_LAYERS){
   }
   if(GEO_LAYERS.opp) geoOverlays[GEO_LAYERS.opp.name].addTo(map); // ортофотоплан 2023 — включён по умолчанию
 }
-const hydroGroup=L.layerGroup(), thermGroup=L.layerGroup(), hydroOgGroup=L.layerGroup(), fpGroup=L.layerGroup(), runoffGroup=L.layerGroup(), kadGroup=L.layerGroup(), igiWellsGroup=L.featureGroup();
-L.control.layers({'Спутник (Esri)':satTiles,'Карта (OSM)':osmTiles},Object.assign(geoOverlays,{'🌡 Тепловая карта грунтов':thermGroup,'🌊 Расчётная гидросеть (модель стока, ЦМР)':runoffGroup,'🗺 Кадастровые границы ЗУ (НСПД/ЕГРН)':kadGroup,'🕳 Скважины и КИА (местные СК → WGS-84)':igiWellsGroup}),{position:'topright'}).addTo(map);
-map.on('overlayadd',e=>{ if(e.layer===thermGroup) thermToggle(true); if(e.layer===runoffGroup) runoffNote(true); if(e.layer===igiWellsGroup) igiWellsLayer(true); });
+const hydroGroup=L.layerGroup(), thermGroup=L.layerGroup(), hydroOgGroup=L.layerGroup(), fpGroup=L.layerGroup(), runoffGroup=L.layerGroup(), kadGroup=L.layerGroup(), igiWellsGroup=L.featureGroup(), kiaTermGroup=L.featureGroup(), kiaPiezoGroup=L.featureGroup(), kiaMarkGroup=L.featureGroup();
+L.control.layers({'Спутник (Esri)':satTiles,'Карта (OSM)':osmTiles},Object.assign(geoOverlays,{'🌡 Тепловая карта грунтов':thermGroup,'🌊 Расчётная гидросеть (модель стока, ЦМР)':runoffGroup,'🗺 Кадастровые границы ЗУ (НСПД/ЕГРН)':kadGroup,'🕳 Скважины и КИА (местные СК → WGS-84)':igiWellsGroup,'🌡 Термоскважины (сеть КИА)':kiaTermGroup,'💧 Пьезометры и рейки (сеть КИА)':kiaPiezoGroup,'📐 Марки и реперы (сеть КИА)':kiaMarkGroup}),{position:'topright'}).addTo(map);
+map.on('overlayadd',e=>{ if(e.layer===thermGroup) thermToggle(true); if(e.layer===runoffGroup) runoffNote(true); if(e.layer===igiWellsGroup) igiWellsLayer(true); if(e.layer===kiaTermGroup) kiaNetLayer('thermal',true); if(e.layer===kiaPiezoGroup) kiaNetLayer('piezo',true); if(e.layer===kiaMarkGroup) kiaNetLayer('marks',true); });
 map.on('overlayremove',e=>{ if(e.layer===thermGroup) thermToggle(false); if(e.layer===runoffGroup) runoffNote(false); });
 /* ---------- слой расчётной гидросети (модель поверхностного стока по ЦМР GLO-30) ---------- */
 if(window.STREAMS&&STREAMS.features){
@@ -1247,6 +1247,59 @@ function igiWellsLayer(notify){
     else alert('Слой «Термоскважины ИГИ»: параметры перехода местных СК в WGS-84 не заданы — скважины не позиционируются ('+need+' шт. в ожидании). Параметры вводятся в карточке объекта: «Инженерно-геологические изыскания» → «Геокриология» → «⚙ Параметры перехода СК» (роль «оператор»).');
   }
 }
+
+/* ---------- слои наблюдательной сети КИА: термоскважины / пьезометры / марки и реперы (реестр o.points) ---------- */
+const KIA_NETS={
+  thermal:{group:()=>kiaTermGroup, kinds:['thermal'], color:'#b34a00', fill:'#e67e22',
+           typeLab:{thermal:'Термометрическая скважина'}},
+  piezo:{group:()=>kiaPiezoGroup, kinds:['piezo','gauge'], color:'#14567f', fill:'#2f8fc4',
+         typeLab:{piezo:'Пьезометрическая скважина', gauge:'Водомерная рейка'}},
+  marks:{group:()=>kiaMarkGroup, kinds:['marks','repers','obs'], color:'#4a2f8f', fill:'#8a5cf6',
+         typeLab:{marks:'Деформационная марка', repers:'Репер (опорный/контрольный)', obs:'Наблюдательная скважина (инклинометр)'}}
+};
+const KIA_SRC_J={'jterm':'Журнал термометрии 2101 ККД','jpz':'Журнал пьезометрии ЧГРК (сводная ведомость)','jmarks':'Журнал деформаций — исходная отметка'};
+function kiaNetLast(o,kind,nm){ // последний замер точки из рядов объекта (если ряд загружен)
+  try{
+    if(kind==='thermal'&&o.prof&&o.prof[nm]){ const s=o.prof[nm].s; return s.length?('последний замер: '+s[s.length-1][0]):''; }
+    if(kind==='piezo'){ const u=(o.ugv||{})[nm]; if(u&&u.length) return 'последний замер: '+u[u.length-1][0]+' — <b>'+u[u.length-1][1]+'</b> м'; }
+    if(kind==='marks'){ const g=(o.geod||{})[nm]; if(g&&g.length) return 'последний замер: '+g[g.length-1][0]+' — осадка <b>'+g[g.length-1][1]+'</b> мм'; }
+  }catch(e){}
+  return '';
+}
+function kiaNetLayer(net,notify){
+  const cfg=KIA_NETS[net]; if(!cfg) return;
+  const grp=cfg.group(); grp.clearLayers();
+  let n=0, noPos=0;
+  (DB.objects||[]).forEach(o=>{
+    const pts=o.points||{};
+    cfg.kinds.forEach(kind=>{
+      (pts[kind]||[]).forEach(p=>{
+        let ll=null;
+        if(p.lat!=null&&p.lon!=null) ll={lat:p.lat,lon:p.lon};
+        else if(p.x!=null&&p.y!=null) ll=skLocalToWgs({sys:'МСК-165', x:p.x, y:p.y});
+        if(!ll){ noPos++; return; }
+        n++;
+        const srcLab=KIA_SRC_J[p.src]||((p.src?repLab(o,p.src).t:'')||'—');
+        const last=kiaNetLast(o,kind==='gauge'?'piezo':kind,p.n);
+        L.circleMarker([ll.lat,ll.lon],{radius:4.5, color:cfg.color, weight:1.4, fillColor:cfg.fill, fillOpacity:.85})
+          .bindPopup('<b>'+esc(cfg.typeLab[kind]||'Точка КИА')+' '+esc(String(p.n))+'</b> · '+esc(o.a)
+            +'<br>'+(p.x!=null?('X '+p.x.toLocaleString('ru-RU')+', Y '+p.y.toLocaleString('ru-RU')+' м · СК «МСК-165»'):'Плановые координаты уточняются')
+            +(p.h!=null?('<br>H = <b>'+String(p.h).replace('.',',')+'</b> м (Балтийская 1977'+(p.src==='jmarks'?', исходная отметка журнала':'')+')'):'')
+            +(p.dep?('<br>Глубина скважины: '+p.dep+' м'):'')
+            +(last?('<br>'+last):'')
+            +'<br><span style="color:#888">Источник: '+esc(srcLab)+'</span>'
+            +'<br><button class="dbtn" style="margin-top:5px" onclick="kiaOpenCard(\''+o.id+'\')">Открыть карточку объекта</button>')
+          .bindTooltip(esc(String(p.n))+' · '+esc(o.a),{direction:'top',offset:[0,-5]})
+          .addTo(grp);
+      });
+    });
+  });
+  if(notify){
+    if(n) map.fitBounds(grp.getBounds().pad(0.15));
+    else alert('Слой наблюдательной сети КИА: точки с координатами отсутствуют'+(noPos?' ('+noPos+' шт. ожидают уточнения координат)':'')+'.');
+  }
+}
+window.kiaOpenCard=function(id){ const i=(DB.objects||[]).findIndex(x=>x.id===id); if(i>=0) select(i); };
 
 /* ---------- слои гидрологической модели поверхностного стока (D8): город — ЦМР Copernicus 30 м; Оганер — ЦМР 5 см (тест) ---------- */
 const hydroSets={
@@ -8577,8 +8630,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"2z4GYMB6Kf58pW+lhTJM8w==",ivV:"6QNi2hwn5/nldfbG",wrapV:"mqdJt104Jm13VtcoxtG+LlPmvhUC91BwnnPxStXf0EwSoCGI/RqvwqavV8vYur+S",saltE:"DmTAMdNKN9XfUtoGbjKllw==",ivE:"Utx//gh844QTdP7Y",wrapE:"WiJ81/7dGx9l8FVeUa6NVaVlhFpiWFCI5M409xR8nkjo1PNgTZrycWh7s01duzdE",ivD:"Y2iIj64c6+rpBnNQ"};
-const BUILD="245f39a8";
+const ENC={saltV:"qqFu35dBRoE0dhEQBoRMxw==",ivV:"P/7KukWtOjhmOl4+",wrapV:"cmpZG3BWn+QcFe+ZFHZ58z+5MX/pBkhzBKv3QdLUdoNKqklnwk3XpkJ7N+HPm8FO",saltE:"Ix9VOxsZ5t4YtEuUlDTQpw==",ivE:"XRaG/0EMdG65cHfM",wrapE:"tlCIsUg2UrEW1RsFfYrq8dgZiNAIPM0Wlc+LreLkM+BIvXJ8QwVfiioE2eWpGrK4",ivD:"T/o3LSYwQNP8Sb6g"};
+const BUILD="d1835c3c";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
