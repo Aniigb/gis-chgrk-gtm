@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=d638e6ae"></script>
-<script src="db_p2.js?v=d638e6ae"></script>
-<script src="db_p3.js?v=d638e6ae"></script>
-<script src="db_p4.js?v=d638e6ae"></script>
-<script src="db_p5.js?v=d638e6ae"></script>
-<script src="db_p6.js?v=d638e6ae"></script>
-<script src="db_p7.js?v=d638e6ae"></script>
-<script src="db_p8.js?v=d638e6ae"></script>
+<script src="db_p1.js?v=ea27d0ce"></script>
+<script src="db_p2.js?v=ea27d0ce"></script>
+<script src="db_p3.js?v=ea27d0ce"></script>
+<script src="db_p4.js?v=ea27d0ce"></script>
+<script src="db_p5.js?v=ea27d0ce"></script>
+<script src="db_p6.js?v=ea27d0ce"></script>
+<script src="db_p7.js?v=ea27d0ce"></script>
+<script src="db_p8.js?v=ea27d0ce"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -7654,7 +7654,7 @@ setTimeout(()=>{ try{
 const GS_STORE={j:'chgrk_gs_journal_v1', snap:'chgrk_gs_snap_v1', road:'chgrk_gs_road_v1', sens:'chgrk_gs_sensors_v1', out:'chgrk_gs_outbox_v1', ntf:'chgrk_gs_notify_v1', duty:'chgrk_gs_duty_v1', sched:'chgrk_gs_sched_v1', done:'chgrk_gs_done_v1', pav:'chgrk_gs_pav_v1'};
 function gsLoad(k,dflt){ try{ const v=JSON.parse(localStorage.getItem(k)); return v==null?dflt:v; }catch(e){ return dflt; } }
 function gsSave(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
-let gsJournal=gsLoad(GS_STORE.j,[]), gsRoad=gsLoad(GS_STORE.road,{}), gsSens=gsLoad(GS_STORE.sens,{}), gsCur=null, gsRemote=false, gsAlertsDay='';
+let gsJournal=gsLoad(GS_STORE.j,[]), gsRoad=gsLoad(GS_STORE.road,{}), gsSens=gsLoad(GS_STORE.sens,{}), gsCur=null, gsRemote=false, gsViewDay='';
 let gsNotify=gsLoad(GS_STORE.ntf,[]), gsDuty=gsLoad(GS_STORE.duty,{name:'',phone:'',tg:'',mail:''});
 let gsSchedCfg=gsLoad(GS_STORE.sched,{}), kiaDone=gsLoad(GS_STORE.done,[]);
 let gsPav=gsLoad(GS_STORE.pav,{});
@@ -8146,7 +8146,7 @@ function gsViewSched(){
   }).sort((a,b)=>a.nx-b.nx);
   const hist=kiaDone.slice(-8).reverse();
   return `<h2>📅 График циклов замеров КИА</h2>
-  <div class="gsCard"><div class="mut">Рабочий график (проект): термометрия и пьезометрия — ежемесячно (15-е число), деформации — ежеквартально (20-е число последнего месяца квартала). Уточняется программой ГТМ и приказом главного инженера.${canEdit?' Роль «оператор»: настройка графика (⚙) и отметка выполнения цикла доступны; изменения сохраняются локально в этом браузере.':''} Заполненные журналы передаются оператору в течение 3 рабочих дней после цикла — см. <a href="Журналы_КИА/Памятка_наблюдателя_КИА.pdf" target="_blank" style="color:var(--c-centr)">Памятку наблюдателя КИА</a>. Бейдж на кнопке раздела — число невыполненных циклов в ближайшие 7 дней.</div></div>
+  <div class="gsCard"><div class="mut">Рабочий график (проект): термометрия и пьезометрия — ежемесячно (15-е число), деформации — ежеквартально (20-е число последнего месяца квартала). Уточняется программой ГТМ и приказом главного инженера.${canEdit?' Роль «оператор»: настройка графика (⚙) и отметка выполнения цикла доступны; изменения сохраняются локально в этом браузере.':''} Заполненные журналы передаются оператору в течение 3 рабочих дней после цикла — см. <a href="Журналы_КИА/Памятка_наблюдателя_КИА.pdf" target="_blank" style="color:var(--c-centr)">Памятку наблюдателя КИА</a>. Бейдж на кнопке раздела — число невыполненных циклов в ближайшие 7 дней. Окно обновляется автоматически при смене даты; внеочередная сверка сроков — кнопкой «⟳ обновить». Данные на ${new Date().toLocaleString('ru-RU')}. <button class="dbtn" id="gsSchedRefresh" title="Внеочередная сверка графика, сроков и просрочек циклов" style="font-size:12px">⟳ обновить</button></div></div>
   ${rows.map(r=>`<div class="gsCard" style="border-left:4px solid ${r.st[0]}">
     <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap">
       <span style="font-size:16px">${r.sc.ic}</span>
@@ -8374,7 +8374,7 @@ function gsViewPav(){
   const inSt='border:1px solid var(--line); border-radius:4px; padding:3px 7px; font-size:12px; background:var(--bg); color:var(--txt)';
   return `<h2>🛡 Готовность к паводку <span class="mut" style="font-size:12px;font-weight:400">(предпаводковые осмотры, ВСН 01-89)</span></h2>
   <div class="gsCard"><h3>Готовность сезона: ${pct}%</h3><div class="gsBar"><i style="width:${pct}%"></i></div>
-    <div class="mut">Чек-лист мероприятий: ${doneC} из ${PAV_CHK.length} · осмотры площадок категории «высокий»: ${doneP} из ${pKeys.length}. Статусы сохраняются локально в этом браузере. Перед новым паводковым сезоном — сброс отметок: <button class="wbtn" data-pvreset style="font-size:12px">↺ Новый сезон (сброс)</button></div>
+    <div class="mut">Чек-лист мероприятий: ${doneC} из ${PAV_CHK.length} · осмотры площадок категории «высокий»: ${doneP} из ${pKeys.length}. Статусы сохраняются локально в этом браузере. Перед новым паводковым сезоном — сброс отметок: <button class="wbtn" data-pvreset style="font-size:12px">↺ Новый сезон (сброс)</button> <button class="wbtn" id="gsPavRefresh" title="Внеочередная сверка готовности, отметок и сроков" style="font-size:12px">⟳ обновить</button> · окно обновляется автоматически при смене даты · данные на ${new Date().toLocaleString('ru-RU')}</div>
     <div class="mut" style="margin-top:4px">Период возможного паводка определяется метеоданными, а не календарём: переходы температуры через 0 °C весной (снеготаяние), дожди и ливни тёплого сезона, осень — до начала устойчивых морозов. При устойчивом морозе талая вода физически отсутствует — гидрологические тревоги метеоконтроля отключены (правило закреплено в методологии прогноза).</div></div>
   ${pavClimCard()}
   <div class="gsCard"><h3>Чек-лист предпаводковых мероприятий (ВСН 01-89)</h3>${rowsC}</div>
@@ -8466,12 +8466,14 @@ function gsBindCommon(){
   const dE=document.getElementById('gsDutyEdit'); if(dE) dE.onclick=()=>{ const f=document.getElementById('gsDutyForm'); if(f) f.style.display=(f.style.display==='none'||!f.style.display)?'':'none'; };
   const dS=document.getElementById('gsDutySave'); if(dS) dS.onclick=()=>{ gsDuty={name:document.getElementById('gsDutyName').value.trim(), phone:document.getElementById('gsDutyPhone').value.trim(), tg:document.getElementById('gsDutyTg').value.trim().replace(/^@/,''), mail:document.getElementById('gsDutyMail').value.trim()}; gsSave(GS_STORE.duty,gsDuty); gsOpen('alerts',true); };
   const aRf=document.getElementById('gsAlertsRefresh'); if(aRf) aRf.onclick=()=>{ gsJournalSync(); gsOpen('alerts',true); }; // ручная внеочередная сверка тревог и уведомлений
+  const sRf=document.getElementById('gsSchedRefresh'); if(sRf) sRf.onclick=()=>{ gsBadges(0); gsOpen('sched',true); }; // ручная сверка графика циклов КИА
+  const pRf=document.getElementById('gsPavRefresh'); if(pRf) pRf.onclick=()=>{ gsBadges(0); gsOpen('pav',true); }; // ручная сверка готовности к паводку
   d.querySelectorAll('[data-gsack]').forEach(el=>el.addEventListener('click',()=>gsAckNtf(el.dataset.gsack)));
 }
 function gsOpen(key, silent){
   const m=document.getElementById('gsModal');
   if(silent && m.style.display!=='block') return; // тихая синхронизация — только когда окно раздела открыто
-  gsCur=key; if(key==='alerts') gsAlertsDay=todayKey(); // дата, на которую отрисован раздел тревог — для автообновления при смене суток
+  gsCur=key; gsViewDay=todayKey(); // дата отрисовки открытого раздела — автообновление при смене суток
   document.querySelectorAll('#gsMenu button').forEach(b=>b.classList.toggle('on', b.dataset.gs===key));
   let html=GS_VIEWS[key](); // карточка объекта за окном сохраняется — curObj не сбрасываем
   const mt=html.match(/^\s*<h2>([\s\S]*?)<\/h2>/); // заголовок раздела — в шапку окна, без дублирования в теле
@@ -8497,7 +8499,7 @@ gsJournalSync();
 setTimeout(gsJournalPull,0); // после полной инициализации скрипта
 setInterval(gsJournalSync,60000);
 setInterval(gsJournalPull,300000); // сверка серверного журнала каждые 5 минут
-setInterval(()=>{ if(gsCur==='alerts'&&gsAlertsDay&&gsAlertsDay!==todayKey()) gsOpen('alerts',true); }, 30*1000); // раздел «Тревоги и эскалация»: автообновление окна при смене даты
+setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsOpen(gsCur,true); } }, 30*1000); // открытый раздел Центра контроля: автообновление окна и бейджей при смене даты
 
 /* ---------- защищённый режим: запрет копирования/скачивания/скриншотов (скачивание разрешено только для презентации) ---------- */
 (function(){
@@ -8552,8 +8554,8 @@ setInterval(()=>{ if(gsCur==='alerts'&&gsAlertsDay&&gsAlertsDay!==todayKey()) gs
 })();
 
 };
-const ENC={saltV:"zeOOg6YVfWnSHUh7/PNdxw==",ivV:"lxkiBC0Z4rbEQSUD",wrapV:"3GfxVTVBaCqXXSnrIOeyZwbOt8yG6mkqPTekN4c86biT7x1i+oe/eEb97Cq1XMi3",saltE:"d0QZcRXYJh/fzzpzRUQDPw==",ivE:"tGxsHv1GcH49gAdX",wrapE:"CAYH76yomxGp27kaGz7EjCecUiY9bkK9AyvrveM5oqslGPky2OVOHrpLF3sJIpq1",ivD:"p63YROxx+JB9w+kX"};
-const BUILD="d638e6ae";
+const ENC={saltV:"uwOBh6ChFowNshOfN74NdQ==",ivV:"39/glFUsR69EROvf",wrapV:"sdOuVHrpW5E4UzFV/njYO1RNrTzPMo3xXd2N0XyfLagMlWXfb+ijqI6C+3e+ppuL",saltE:"Pt2bxFxFcw7KyOsDVuWSAQ==",ivE:"y2/XJOA3fMY25Kry",wrapE:"QJqDgK6ll9fhIkqoXs46EBuJWECwa7Vz2Jd2BY5W1UNnqJR2cFgCKsTHvD9QauaO",ivD:"4gVR4kXXQgkd1vUv"};
+const BUILD="ea27d0ce";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
