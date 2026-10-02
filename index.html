@@ -785,14 +785,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=a7353804"></script>
-<script src="db_p2.js?v=a7353804"></script>
-<script src="db_p3.js?v=a7353804"></script>
-<script src="db_p4.js?v=a7353804"></script>
-<script src="db_p5.js?v=a7353804"></script>
-<script src="db_p6.js?v=a7353804"></script>
-<script src="db_p7.js?v=a7353804"></script>
-<script src="db_p8.js?v=a7353804"></script>
+<script src="db_p1.js?v=817669cc"></script>
+<script src="db_p2.js?v=817669cc"></script>
+<script src="db_p3.js?v=817669cc"></script>
+<script src="db_p4.js?v=817669cc"></script>
+<script src="db_p5.js?v=817669cc"></script>
+<script src="db_p6.js?v=817669cc"></script>
+<script src="db_p7.js?v=817669cc"></script>
+<script src="db_p8.js?v=817669cc"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1997,7 +1997,7 @@ map.on('click', e=>{
 geoCtl=document.createElement('button');
 geoCtl.id='geoPosBtn';
 geoCtl.textContent='📍';
-geoCtl.style.cssText='position:absolute; top:84px; left:10px; z-index:700; width:30px; height:30px; padding:0; display:flex; align-items:center; justify-content:center; background:#fff; color:#1d2733; border:2px solid rgba(0,0,0,.25); border-radius:5px; font-size:15px; line-height:1; cursor:pointer';
+geoCtl.style.cssText='position:absolute; top:84px; left:10px; z-index:700; width:30px; height:30px; padding:0; background:#fff; color:#1d2733; border:2px solid rgba(0,0,0,.25); border-radius:5px; font-size:15px; line-height:26px; text-align:center; cursor:pointer';
 geoCtl.title='Позиционирование — режим уточнения геопривязки: клик по маркеру объекта → клик по новому месту на снимке → «Сохранить в карточку»; либо клик по сооружению → ближайший объект → перенос точки';
 geoCtl.onclick=toggleGeoMode;
 document.getElementById('map').appendChild(geoCtl);
@@ -9011,8 +9011,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"Dd6CQ69GfcaGx4HhvVF5vQ==",ivV:"pFZiioVREWVfkoAd",wrapV:"cXR819C2ZEDpmfe8ugKFiDvKpOjv4XvmeWtxhei9n7iq9hipZs0kBI6VHoSiD4ef",saltE:"fkRuUGlO6risEzsYgiL9wQ==",ivE:"bZU4rER7toy/kLvx",wrapE:"UitESwjcgvL3j/WNnOWay1v9YSqvPthNAGJ8ZXrPIrGacWAGAQ6+RCTJxuqZG9j0",ivD:"fYKRk67OL7ffNQ6w"};
-const BUILD="a7353804";
+const ENC={saltV:"EYYcJcm1XgGu2wTouerC7Q==",ivV:"XLpPyxLN4yKRU+ec",wrapV:"IzhG5clVgkca5LO1IoPvuhC2cSvoVhsxvNccqP3pWpLsIgB4uWUHEPwnpN6zg26d",saltE:"mE295X1y0TvxLQrSp4wQvA==",ivE:"yNka4l7x8cp3RfhK",wrapE:"k0qJIzm7/VeE3tS9nQKTbuOtwjCGSFbJMOonkIrCTLakW636iTFUe5Ol0NeGIqTq",ivD:"gtDzjf3x56NGsMnl"};
+const BUILD="817669cc";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
