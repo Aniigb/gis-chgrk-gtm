@@ -21,6 +21,26 @@
     --c-centr:#14295E; --c-talnakh:#EF3F23; --c-kayerkan:#5b7ec4;
     --ok:#2e7d32; --risk:#e08a00; --crit:#c8372d; --line:#DFE2EA;
   }
+  /* ---------- xdd: профессиональный выпадающий список (аудит 02.10.2026) ----------
+     Правила: закрытое состояние — одна строка с ellipsis; панель строго в ширине
+     контейнера (не выходит за границы окна); опция = заголовок + пояснение мелким;
+     текущий пункт — галочка и акцент; навигация с клавиатуры; ARIA listbox. */
+  .xdd{position:relative; flex:1; min-width:0}
+  .xdd-btn{display:flex; align-items:center; gap:8px; width:100%; padding:6px 10px; border:1px solid var(--line); border-radius:6px; background:#fff; font-size:12.8px; color:var(--ink); cursor:pointer; text-align:left; transition:border-color .15s, box-shadow .15s}
+  .xdd-btn:hover{border-color:#b9c2d8}
+  .xdd-btn:focus-visible{outline:2px solid var(--c-centr); outline-offset:1px}
+  .xdd.open .xdd-btn{border-color:var(--c-centr); box-shadow:0 0 0 3px rgba(20,41,94,.12)}
+  .xdd-btn .xdd-label{flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; font-weight:600}
+  .xdd-btn .xdd-chev{flex:none; color:var(--mut); font-size:10px; transition:transform .18s}
+  .xdd.open .xdd-chev{transform:rotate(180deg)}
+  .xdd-panel{position:absolute; z-index:60; top:calc(100% + 4px); left:0; right:0; max-height:320px; overflow-y:auto; background:#fff; border:1px solid var(--line); border-radius:8px; box-shadow:0 10px 28px rgba(20,41,94,.18); padding:4px}
+  .xdd-opt{display:flex; gap:10px; align-items:flex-start; padding:8px 10px; border-radius:6px; cursor:pointer}
+  .xdd-opt:hover,.xdd-opt.hov{background:#eef1f8}
+  .xdd-opt .xdd-check{flex:none; width:16px; color:var(--c-centr); font-weight:700; font-size:12px; margin-top:2px}
+  .xdd-opt .xdd-tt{font-size:12.8px; font-weight:600; color:var(--ink); line-height:1.3}
+  .xdd-opt .xdd-ds{font-size:11.4px; color:var(--mut); line-height:1.35; margin-top:1px}
+  .xdd-opt[aria-selected="true"]{background:#f4f6fc}
+  .xdd-opt[aria-selected="true"] .xdd-tt{color:var(--c-centr)}
   *{box-sizing:border-box; margin:0; padding:0}
   html,body{height:100%; font:14px/1.45 "Noto Sans","Segoe UI","PT Sans",-apple-system,"Helvetica Neue",Arial,sans-serif; color:var(--ink)}
   #app{display:grid; grid-template-columns:330px 1fr 420px; grid-template-rows:56px auto 1fr auto; height:100vh}
@@ -798,14 +818,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=d0aff6cd"></script>
-<script src="db_p2.js?v=d0aff6cd"></script>
-<script src="db_p3.js?v=d0aff6cd"></script>
-<script src="db_p4.js?v=d0aff6cd"></script>
-<script src="db_p5.js?v=d0aff6cd"></script>
-<script src="db_p6.js?v=d0aff6cd"></script>
-<script src="db_p7.js?v=d0aff6cd"></script>
-<script src="db_p8.js?v=d0aff6cd"></script>
+<script src="db_p1.js?v=a35a3217"></script>
+<script src="db_p2.js?v=a35a3217"></script>
+<script src="db_p3.js?v=a35a3217"></script>
+<script src="db_p4.js?v=a35a3217"></script>
+<script src="db_p5.js?v=a35a3217"></script>
+<script src="db_p6.js?v=a35a3217"></script>
+<script src="db_p7.js?v=a35a3217"></script>
+<script src="db_p8.js?v=a35a3217"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -6671,11 +6691,46 @@ function spThawFreeze(p){
 }
 
 const CALCS=[
- {id:'pile', name:'Несущая способность вмороженной сваи (опоры эстакад, трубопроводов) — Q = q_s·U·L + q_p·A (СП 25.13330)'},
- {id:'thaw', name:'Глубина сезонного оттаивания и промерзания — СП 25.13330.2020, прил. Г (с Изм. № 3)'},
- {id:'tprog', name:'Прогноз температуры основания по тренду — год выхода на порог'},
- {id:'ngc', name:'Температурный запас на уровне НГК против расчётной температуры'},
- {id:'osad', name:'Осадка и скорость деформаций против контрольных критериев программы ГТМ (К1/К2)'}];
+ {id:'pile', name:'Несущая способность вмороженной сваи', desc:'Опоры эстакад, трубопроводов · Q = q_s·U·L + q_p·A · СП 25.13330'},
+ {id:'thaw', name:'Глубина сезонного оттаивания и промерзания', desc:'СП 25.13330.2020, прил. Г (с Изм. № 3)'},
+ {id:'tprog', name:'Прогноз температуры основания по тренду', desc:'Определение года выхода на порог'},
+ {id:'ngc', name:'Температурный запас на уровне НГК', desc:'Против расчётной температуры основания'},
+ {id:'osad', name:'Осадка и скорость деформаций', desc:'Против контрольных критериев программы ГТМ (К1/К2)'}];
+function calcFullName(c){ return c.name + (c.desc ? ' — ' + c.desc : ''); }
+
+/* ---------- xdd: профессиональный выпадающий список (замена нативного select
+   для длинных названий: панель в ширине контейнера, двухстрочные опции,
+   клавиатура ↑/↓/Enter/Esc, ARIA listbox, закрытие по клику вне) ---------- */
+function xddMake(host, items, curId, onPick){
+  host.classList.add('xdd');
+  host.innerHTML='<button type="button" class="xdd-btn" aria-haspopup="listbox" aria-expanded="false"><span class="xdd-label"></span><span class="xdd-chev">&#9662;</span></button><div class="xdd-panel" role="listbox" style="display:none"></div>';
+  const btn=host.querySelector('.xdd-btn'), lab=host.querySelector('.xdd-label'), panel=host.querySelector('.xdd-panel');
+  let hovIdx=-1;
+  const full=c=>c.name+(c.desc?(' — '+c.desc):'');
+  const sel=()=>items.find(x=>x.id===curId)||items[0];
+  function renderBtn(){ const c=sel(); lab.textContent=c.name; lab.title=full(c); }
+  function setHov(i){ hovIdx=i; panel.querySelectorAll('.xdd-opt').forEach(op=>op.classList.toggle('hov',+op.dataset.i===i));
+    if(i>=0){ const op=panel.querySelector('.xdd-opt[data-i="'+i+'"]'); if(op) op.scrollIntoView({block:'nearest'}); } }
+  function renderPanel(){
+    panel.innerHTML=items.map((c,i)=>'<div class="xdd-opt" role="option" data-id="'+c.id+'" data-i="'+i+'" aria-selected="'+(c.id===curId)+'"><span class="xdd-check">'+(c.id===curId?'✔':'')+'</span><span style="min-width:0"><div class="xdd-tt">'+esc(c.name)+'</div>'+(c.desc?'<div class="xdd-ds">'+esc(c.desc)+'</div>':'')+'</span></div>').join('');
+    panel.querySelectorAll('.xdd-opt').forEach(op=>{ op.onmouseenter=()=>setHov(+op.dataset.i); op.onclick=()=>pick(op.dataset.id); });
+  }
+  function onDoc(e){ if(!host.contains(e.target)) close(); }
+  function open(){ renderPanel(); panel.style.display=''; host.classList.add('open'); btn.setAttribute('aria-expanded','true'); setHov(items.findIndex(x=>x.id===curId)); document.addEventListener('mousedown', onDoc, true); }
+  function close(){ panel.style.display='none'; host.classList.remove('open'); btn.setAttribute('aria-expanded','false'); document.removeEventListener('mousedown', onDoc, true); }
+  function pick(id){ close(); if(id!==curId){ curId=id; renderBtn(); onPick(id); } }
+  btn.onclick=()=>{ panel.style.display==='none'?open():close(); };
+  btn.onkeydown=e=>{
+    if(e.key==='ArrowDown'||e.key==='ArrowUp'){ e.preventDefault();
+      if(panel.style.display==='none') open();
+      else setHov((hovIdx+(e.key==='ArrowDown'?1:-1)+items.length)%items.length); }
+    else if(e.key==='Enter'||e.key===' '){ e.preventDefault();
+      if(panel.style.display==='none') open(); else if(hovIdx>=0) pick(items[hovIdx].id); }
+    else if(e.key==='Escape'){ close(); btn.focus(); }
+    else if(e.key==='Tab'){ close(); }
+  };
+  renderBtn();
+}
 
 let curCalc='pile';
 function calcAutoFill(o){
@@ -6711,10 +6766,8 @@ function tabCalc(o, el){
   el.innerHTML=`
   <div class="normref">Раздел нормативных расчётов — для пользователя с правами «оператор». Коэффициенты из таблиц СП вводятся вручную и помечены; формулы и подстановка показываются открыто. Данные объекта подставляются автоматически.${ro?' <b>У вас права «наблюдатель» — поля только для чтения.</b>':''}</div>
   <div style="display:flex; gap:8px; align-items:center; margin-bottom:8px">
-    <b style="font-size:12.5px">Расчёт:</b>
-    <select id="calcSel" style="flex:1; padding:6px 8px; border:1px solid var(--line); border-radius:6px; font-size:12.8px">
-      ${CALCS.map(c=>`<option value="${c.id}" ${c.id===curCalc?'selected':''}>${esc(c.name)}</option>`).join('')}
-    </select>
+    <b style="font-size:12.5px; white-space:nowrap">Расчёт:</b>
+    <div id="calcSelHost" style="flex:1; min-width:0"></div>
   </div>
   ${ro?'':'<button class="addrow" id="calcAuto" style="border-style:solid; border-color:var(--ok); color:var(--ok); margin-bottom:8px">⚡ Автозаполнить из карточки объекта и нормативных таблиц</button>'}
   <div id="calcBody"></div>
@@ -6728,7 +6781,7 @@ function tabCalc(o, el){
     calcAutoFill(o);
     const go=document.getElementById('calcGo'); if(go) go.click();
   };
-  document.getElementById('calcSel').onchange=e=>{ curCalc=e.target.value; tabCalc(o, el); };
+  xddMake(document.getElementById('calcSelHost'), CALCS, curCalc, id=>{ curCalc=id; tabCalc(o, el); });
   const clr=document.getElementById('calcAppClear');
   if(clr) clr.onclick=e=>{ e.preventDefault(); sessionStorage.setItem('gtm_calcapp', JSON.stringify(JSON.parse(sessionStorage.getItem('gtm_calcapp')||'[]').filter(x=>x.addr!==o.a))); tabCalc(o, el); };
   const body=document.getElementById('calcBody');
@@ -6740,7 +6793,7 @@ function tabCalc(o, el){
     b.textContent='📄 В отчёт (в «Приложение. Расчёты»)';
     b.onclick=()=>{
       let app=[]; try{ app=JSON.parse(sessionStorage.getItem('gtm_calcapp')||'[]'); }catch(e){}
-      app.push({addr:o.a, calc:CALCS.find(c=>c.id===curCalc).name, text:el2.innerText.trim(), ts:new Date().toISOString().slice(0,16).replace('T',' ')});
+      app.push({addr:o.a, calc:calcFullName(CALCS.find(c=>c.id===curCalc)), text:el2.innerText.trim(), ts:new Date().toISOString().slice(0,16).replace('T',' ')});
       sessionStorage.setItem('gtm_calcapp', JSON.stringify(app));
       b.textContent='✔ Добавлено в отчёт объекта';
     };
@@ -9392,8 +9445,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"Pp9Ug1vteHm919G3c/1vrw==",ivV:"jagqdnIjSmLGBA2n",wrapV:"PvCTk4heBYImF06TPqT6V2OretSn/Pwg8HVmy0gA7b1OG8X9Rz6QBiT+VtnT45a9",saltE:"Yf6g05vDg57TaJhNdyCBYQ==",ivE:"YjR9RHU4HauMGwZD",wrapE:"2Fys74UpY/vwhhyWh+NiOYNxPJ6kJ1ZrQqjvFmyR4htz7pN/3M0GQ+IaUmXv2cjb",ivD:"pLouA9KMwQo2YQ4Q"};
-const BUILD="d0aff6cd";
+const ENC={saltV:"Jes8SjLMhunQSZsyHmPGAw==",ivV:"Ma8CWpBF9IKi6ukt",wrapV:"aKi6lx82jX9iHUJslSM4GUO//UzY8sHl4wlbbqjIZpfSEvIBnGVN0MAoHq7ZToA6",saltE:"e1R3biF78qBcq/a3fDtdTw==",ivE:"57ST0AbI6r1S+liA",wrapE:"Xu0PcAR+9yJ+HD2+Sxkb/Nkf1xYaBLiKfjSiP8T7YeWVZydveao6uhvYfvpXRJXt",ivD:"3cKx9PQz+Q+vfn98"};
+const BUILD="a35a3217";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
