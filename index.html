@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=92c22955"></script>
-<script src="db_p2.js?v=92c22955"></script>
-<script src="db_p3.js?v=92c22955"></script>
-<script src="db_p4.js?v=92c22955"></script>
-<script src="db_p5.js?v=92c22955"></script>
-<script src="db_p6.js?v=92c22955"></script>
-<script src="db_p7.js?v=92c22955"></script>
-<script src="db_p8.js?v=92c22955"></script>
+<script src="db_p1.js?v=1479ee32"></script>
+<script src="db_p2.js?v=1479ee32"></script>
+<script src="db_p3.js?v=1479ee32"></script>
+<script src="db_p4.js?v=1479ee32"></script>
+<script src="db_p5.js?v=1479ee32"></script>
+<script src="db_p6.js?v=1479ee32"></script>
+<script src="db_p7.js?v=1479ee32"></script>
+<script src="db_p8.js?v=1479ee32"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1338,8 +1338,9 @@ let igiThermCv=null;
 function igiThermEnsure(){
   if(igiThermCv) return;
   igiThermCv=document.createElement('canvas');
-  igiThermCv.style.cssText='position:absolute; inset:0; z-index:350; pointer-events:none';
-  document.getElementById('map').appendChild(igiThermCv);
+  igiThermCv.style.cssText='position:absolute; inset:0; pointer-events:none';
+  if(!map.getPane('igiThermPane')) map.createPane('igiThermPane').style.zIndex=390; // над подосновой, под маркерами и контролами
+  map.getPane('igiThermPane').appendChild(igiThermCv);
   map.on('resize move zoom', ()=>{ if(map.hasLayer(igiThermGroup)) igiThermDrawField(); });
 }
 function igiThermDrawField(){
@@ -1554,8 +1555,9 @@ function hydroStep(){
 function hydroEnsureCanvas(){
   if(hydroCv) return;
   hydroCv=document.createElement('canvas');
-  hydroCv.style.cssText='position:absolute; inset:0; z-index:600; pointer-events:none';
-  document.getElementById('map').appendChild(hydroCv);
+  hydroCv.style.cssText='position:absolute; inset:0; pointer-events:none';
+  if(!map.getPane('hydroPane')) map.createPane('hydroPane').style.zIndex=605; // над маркерами, под подсказками
+  map.getPane('hydroPane').appendChild(hydroCv);
   const rs=()=>{ const r=map.getContainer().getBoundingClientRect(); hydroCv.width=r.width; hydroCv.height=r.height; };
   rs(); map.on('resize movezoom', rs);
 }
@@ -1682,8 +1684,9 @@ function thermPoints(dep){
 function thermEnsure(){
   if(thermCv) return;
   thermCv=document.createElement('canvas');
-  thermCv.style.cssText='position:absolute; inset:0; z-index:590; pointer-events:none';
-  document.getElementById('map').appendChild(thermCv);
+  thermCv.style.cssText='position:absolute; inset:0; pointer-events:none';
+  if(!map.getPane('thermPane')) map.createPane('thermPane').style.zIndex=395;
+  map.getPane('thermPane').appendChild(thermCv);
   // переключатель глубин
   thermCtl=document.createElement('div');
   thermCtl.style.cssText='position:absolute; right:64px; top:26px; z-index:640; background:rgba(255,255,255,.94); border:1px solid var(--line); border-radius:7px; padding:5px 8px; font-size:11.5px; display:none';
@@ -8928,8 +8931,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"+ocRwE4+egla8G0AaE9bAA==",ivV:"OMysAukUro1XlvN0",wrapV:"EVJeyHv6QceTEYaWbketITEqn+xkL50uDu53cASNXWu0KUQi6uTPZIDnCLKDhulP",saltE:"zp96K5lVJcDc8xHNwIPGRw==",ivE:"nYCIWhnmm57E7m5x",wrapE:"2DSsBw/GZJCkw7+RDILSQo4bTd8nDC+sBb6pH5wYngh8h3wbvZJhH86QwYAGTNUw",ivD:"XHVMcH6sml1rF8d7"};
-const BUILD="92c22955";
+const ENC={saltV:"lturJrANmix9PDgowsiyFg==",ivV:"31J88QCZwkf9yrgs",wrapV:"fsZGRPfGL5G48RKy4kh7dT5KzQ3qsfNHHXKtPFsZItk50577vOFGnF4reJ1orGdI",saltE:"WlSmirW7NtxsyKG7KA3UsA==",ivE:"qDb6/3YzmHhpMvrK",wrapE:"Z+HK5/4ccFfLOj98Q0FUSYMF7PJhUGejfOu+XZyBqMfVHfqbbkF+sX8KX1iZLhvX",ivD:"AkRKPPHvlee0BxCo"};
+const BUILD="1479ee32";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
