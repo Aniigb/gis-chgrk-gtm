@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=1627c28b"></script>
-<script src="db_p2.js?v=1627c28b"></script>
-<script src="db_p3.js?v=1627c28b"></script>
-<script src="db_p4.js?v=1627c28b"></script>
-<script src="db_p5.js?v=1627c28b"></script>
-<script src="db_p6.js?v=1627c28b"></script>
-<script src="db_p7.js?v=1627c28b"></script>
-<script src="db_p8.js?v=1627c28b"></script>
+<script src="db_p1.js?v=60c86649"></script>
+<script src="db_p2.js?v=60c86649"></script>
+<script src="db_p3.js?v=60c86649"></script>
+<script src="db_p4.js?v=60c86649"></script>
+<script src="db_p5.js?v=60c86649"></script>
+<script src="db_p6.js?v=60c86649"></script>
+<script src="db_p7.js?v=60c86649"></script>
+<script src="db_p8.js?v=60c86649"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1625,32 +1625,57 @@ function thermDraw(){
     }
   }
   ctx.globalAlpha=1;
-  // 2) изолинии с шагом 0,3 °C (0 °C — утолщённая)
+  // 2) изолинии непрерывными линиями (marching squares): шаг 0,3 °C; целые значения — основные с подписями; 0 °C — утолщённая синяя
+  const cellSeg=(gy,gx,Lv)=>{
+    const t=[TG[gy][gx],TG[gy][gx+1],TG[gy+1][gx+1],TG[gy+1][gx]]; // 0=ЛВ,1=ПВ,2=ПН,3=ЛН
+    if(t[0]===null||t[1]===null||t[2]===null||t[3]===null) return null;
+    const P=[PG[gy][gx],PG[gy][gx+1],PG[gy+1][gx+1],PG[gy+1][gx]];
+    if(!P[0]||!P[1]||!P[2]||!P[3]) return null;
+    const idx=(t[0]>Lv?1:0)|(t[1]>Lv?2:0)|(t[2]>Lv?4:0)|(t[3]>Lv?8:0);
+    if(idx===0||idx===15) return null;
+    const E=(i,j)=>{ const f=(Lv-t[i])/(t[j]-t[i]); return [P[i].x+(P[j].x-P[i].x)*f, P[i].y+(P[j].y-P[i].y)*f]; };
+    const Te=E(0,1), Re=E(1,2), Be=E(2,3), Le=E(3,0);
+    switch(idx){
+      case 1: return [[Le,Te]];   case 2: return [[Te,Re]];
+      case 3: return [[Le,Re]];   case 4: return [[Re,Be]];
+      case 5: return [[Le,Te],[Re,Be]]; case 6: return [[Te,Be]];
+      case 7: return [[Le,Be]];   case 8: return [[Le,Be]];
+      case 9: return [[Te,Be]];   case 10: return [[Te,Re],[Le,Be]];
+      case 11: return [[Re,Be]];  case 12: return [[Le,Re]];
+      case 13: return [[Te,Re]];  case 14: return [[Le,Te]];
+    }
+    return null;
+  };
   const L0=Math.ceil(tmin/STEP)*STEP;
-  for(let Lv=L0; Lv<=tmax; Lv+=STEP){
+  for(let Lv=L0; Lv<=tmax+1e-9; Lv+=STEP){
+    Lv=+Lv.toFixed(3);
     const zero=Math.abs(Lv)<0.01;
-    ctx.strokeStyle=zero?'#08306b':'rgba(40,40,40,.5)';
-    ctx.lineWidth=zero?1.8:0.7;
-    for(let gy=0; gy<GY-1; gy++){
-      for(let gx=0; gx<GX-1; gx++){
-        const t=TG[gy][gx];
-        if(t===null) continue;
-        const tr=TG[gy][gx+1], td=TG[gy+1][gx];
-        if(tr!==null&&(t-Lv)*(tr-Lv)<0){
-          const f=(Lv-t)/(tr-t);
-          const a=PG[gy][gx], bb=PG[gy][gx+1];
-          if(!a||!bb) continue;
-          const x=a.x+(bb.x-a.x)*f, y=a.y+(bb.y-a.y)*f;
-          ctx.beginPath(); ctx.moveTo(x-2.2,y); ctx.lineTo(x+2.2,y); ctx.stroke();
-        }
-        if(td!==null&&(t-Lv)*(td-Lv)<0){
-          const f=(Lv-t)/(td-t);
-          const a=PG[gy][gx], bb=PG[gy+1][gx];
-          if(!a||!bb) continue;
-          const x=a.x+(bb.x-a.x)*f, y=a.y+(bb.y-a.y)*f;
-          ctx.beginPath(); ctx.moveTo(x,y-2.2); ctx.lineTo(x,y+2.2); ctx.stroke();
-        }
+    const major=Math.abs(Lv-Math.round(Lv))<0.011; // целые значения — основные линии
+    const segs=[];
+    for(let gy=0; gy<GY-1; gy++) for(let gx=0; gx<GX-1; gx++){
+      const s=cellSeg(gy,gx,Lv); if(s) segs.push(...s);
+    }
+    if(!segs.length) continue;
+    ctx.strokeStyle=zero?'#08306b':(major?'rgba(25,25,25,.8)':'rgba(70,70,70,.42)');
+    ctx.lineWidth=zero?2.2:(major?1.15:0.55);
+    ctx.lineCap='round';
+    ctx.beginPath();
+    segs.forEach(s=>{ ctx.moveTo(s[0][0],s[0][1]); ctx.lineTo(s[1][0],s[1][1]); });
+    ctx.stroke();
+    if(major||zero){ // подписи значений вдоль основных изолиний
+      ctx.font='600 10px "Segoe UI",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      const step=Math.max(1,Math.round(segs.length/9));
+      for(let i=0;i<segs.length;i+=step){
+        const a=segs[i][0], b=segs[i][1];
+        let ang=Math.atan2(b[1]-a[1],b[0]-a[0]);
+        if(ang>Math.PI/2) ang-=Math.PI; if(ang<-Math.PI/2) ang+=Math.PI;
+        ctx.save(); ctx.translate((a[0]+b[0])/2,(a[1]+b[1])/2); ctx.rotate(ang);
+        const lab=String(+Lv.toFixed(1)).replace('.',',');
+        ctx.lineWidth=3.2; ctx.strokeStyle='rgba(255,255,255,.92)'; ctx.strokeText(lab,0,0);
+        ctx.fillStyle=zero?'#08306b':'#222'; ctx.fillText(lab,0,0);
+        ctx.restore();
       }
+      ctx.textBaseline='alphabetic';
     }
   }
   // 3) точки объектов (из скважин)
@@ -1662,7 +1687,7 @@ function thermDraw(){
   });
   thermCtl.style.display='block';
   thermCtl.innerHTML='🌡 Глубина: '+THERM_DEPTHS.map(d=>`<button class="wbtn" data-td="${d}" style="padding:1px 6px; ${d===thermDepth?'background:#14295E;color:#fff':''}">${d} м</button>`).join(' ')+
-    ` · изолинии 0,3 °C · <span style="color:#08306b">━</span> 0 °C · <span style="color:#08306b">■</span><0°C <span style="color:#f50818">■</span>>0°C`;
+    ` · изолинии через 0,3 °C (целые — с подписями) · <span style="color:#08306b">━</span> 0 °C · <span style="color:#08306b">■</span><0°C <span style="color:#f50818">■</span>>0°C`;
   thermCtl.querySelectorAll('[data-td]').forEach(bt=>bt.onclick=()=>{ thermDepth=+bt.dataset.td; thermDraw(); });
 }
 function thermToggle(on){
@@ -8793,8 +8818,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"A2NyDgDEq9UQBlTK1oS+CA==",ivV:"ubKYhQBHXCO1smV6",wrapV:"yKoZzc2lrptze6b+qb6fXlQvtA9ESAuXIfM0QfrGwsziQ5FwH3htmysvyFQ0r6Nj",saltE:"Nl4uz//lqbtdfDCKH/THrQ==",ivE:"zS4t1vt9pSm7xUWW",wrapE:"84caVh+D1dDrnQDo/0Fy5wvTmoL8RYDhrxnxCzTVc9CpRIf60pathuXGgbisqfFd",ivD:"yYTsxKqrhDSzxW5F"};
-const BUILD="1627c28b";
+const ENC={saltV:"nEO60sWqz2ggQ1cPsLaU7w==",ivV:"id5dfZHhzxZOOOV6",wrapV:"4pkP0e+Z8WZh3ItopmV6cSf8DRFkU9jdJzH9Aw8zV2bru9wzETrl9ODPG3Weeamk",saltE:"oTfManVyKyAVKxxAlCQMQA==",ivE:"3kggua4gyOGVsXAo",wrapE:"ZaizyOl9r/rJ9ufgOxNBztadlj5wc7/ksRGxJFbWQMrlxAJ0ozmsZFzdsOtQJZ9r",ivD:"8jDlg6hktj8ULrvT"};
+const BUILD="60c86649";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
