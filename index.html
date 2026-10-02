@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=1479ee32"></script>
-<script src="db_p2.js?v=1479ee32"></script>
-<script src="db_p3.js?v=1479ee32"></script>
-<script src="db_p4.js?v=1479ee32"></script>
-<script src="db_p5.js?v=1479ee32"></script>
-<script src="db_p6.js?v=1479ee32"></script>
-<script src="db_p7.js?v=1479ee32"></script>
-<script src="db_p8.js?v=1479ee32"></script>
+<script src="db_p1.js?v=d071c596"></script>
+<script src="db_p2.js?v=d071c596"></script>
+<script src="db_p3.js?v=d071c596"></script>
+<script src="db_p4.js?v=d071c596"></script>
+<script src="db_p5.js?v=d071c596"></script>
+<script src="db_p6.js?v=d071c596"></script>
+<script src="db_p7.js?v=d071c596"></script>
+<script src="db_p8.js?v=d071c596"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1333,6 +1333,30 @@ function igiTAt(prof,dep){ // T на глубине dep: точное совпа
   }
   return null;
 }
+/* ---------- маска границ площадки ЧГОК (ЗУ 24:55:0500001:695, kadastr.js) для температурных полей ---------- */
+function kadRings(){ try{ return (window.KAD&&KAD.plots?KAD.plots:[]).flatMap(p=>p.rings||[]); }catch(e){ return []; } }
+function segDistM(la,lo,a,b){ // расстояние от точки до отрезка границы, м (локальная проекция)
+  const ky=111320, kx=111320*Math.cos(la*Math.PI/180);
+  const px=(lo-a[1])*kx, py=(la-a[0])*ky, bx=(b[1]-a[1])*kx, by=(b[0]-a[0])*ky;
+  const L2=bx*bx+by*by||1e-9; let t=(px*bx+py*by)/L2; t=Math.max(0,Math.min(1,t));
+  return Math.hypot(px-t*bx,py-t*by);
+}
+function inSite(la,lo,bufM){ // внутри границы площадки (+ буфер bufM, м); без загруженной границы — не маскируем
+  const rings=kadRings(); if(!rings.length) return true;
+  if(inPoly(la,lo,rings)) return true;
+  if(bufM>0) for(const ring of rings) for(let i=0,j=ring.length-1;i<ring.length;j=i++)
+    if(segDistM(la,lo,ring[j],ring[i])<=bufM) return true;
+  return false;
+}
+function drawSiteBoundary(ctx){ // видимая линия границы площадки поверх температурного поля
+  const rings=kadRings(); if(!rings.length) return;
+  ctx.save();
+  ctx.strokeStyle='rgba(20,41,94,.92)'; ctx.lineWidth=2; ctx.setLineDash([8,5]); ctx.lineJoin='round';
+  rings.forEach(ring=>{ ctx.beginPath();
+    ring.forEach((pt,i)=>{ const p=map.latLngToContainerPoint(pt); i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y); });
+    ctx.closePath(); ctx.stroke(); });
+  ctx.setLineDash([]); ctx.restore();
+}
 /* температурное поле в изолиниях с градацией для слоя «Термометрия на этапе изысканий (2022)» */
 let igiThermCv=null;
 function igiThermEnsure(){
@@ -1360,6 +1384,7 @@ function igiThermDrawField(){
   const b=map.getBounds().pad(0.1);
   const GX=110, GY=Math.max(8,Math.round(GX*r.height/r.width));
   const STEP=0.5;                                   // шаг изолиний, °C
+  const R2=1.5e-4;                                  // радиус влияния скважины ≈ 1,4 км (без размытия за пределы данных)
   const TG=[],PG=[];
   let tLo=99,tHi=-99; pts.forEach(p=>{ tLo=Math.min(tLo,p[2]); tHi=Math.max(tHi,p[2]); });
   for(let gy=0; gy<GY; gy++){
@@ -1367,14 +1392,15 @@ function igiThermDrawField(){
     for(let gx=0; gx<GX; gx++){
       const lat=b.getNorth()-(gy+0.5)/GY*(b.getNorth()-b.getSouth());
       const lon=b.getWest()+(gx+0.5)/GX*(b.getEast()-b.getWest());
+      rowP.push(map.latLngToContainerPoint([lat,lon]));
+      if(!inSite(lat,lon,60)){ rowT.push(null); continue; }   // только в границах площадки (+60 м)
       let sw=0,swt=0;
       for(const [la,lo,t] of pts){
         const d2=(la-lat)**2+((lo-lon)*Math.cos(lat*Math.PI/180))**2;
-        if(d2>0.03) continue;                       // радиус влияния точки
+        if(d2>R2) continue;                         // вне радиуса влияния — нет данных
         const w=1/(d2+1e-6); sw+=w; swt+=w*t;
       }
       rowT.push(sw?swt/sw:null);
-      rowP.push(map.latLngToContainerPoint([lat,lon]));
     }
     TG.push(rowT); PG.push(rowP);
   }
@@ -1441,6 +1467,7 @@ function igiThermDrawField(){
       ctx.textBaseline='alphabetic';
     }
   }
+  drawSiteBoundary(ctx);                            // граница площадки поверх поля
 }
 function igiThermClear(){ if(igiThermCv) igiThermCv.getContext('2d').clearRect(0,0,igiThermCv.width,igiThermCv.height); }
 function igiThermNetLayer(notify){
@@ -1485,7 +1512,7 @@ function igiThermCtlShow(on){ // контрол выбора глубины + л
         +'<div style="margin-top:6px;display:flex;align-items:center;gap:0">'
         +IGT_SCALE.map(s=>'<div style="flex:1;height:9px;background:'+s[1]+'" title="'+s[0]+' °C"></div>').join('')+'</div>'
         +'<div style="display:flex;justify-content:space-between;font-size:10px;color:#555"><span>−10</span><span>−5</span><span>−3</span><span>−1</span><span>0</span><span>+0,5</span><span>+2</span><span>+5 °C</span></div>'
-        +'<div style="font-size:10px;color:#777;margin-top:3px">Поле и маркеры — T грунта на выбранной глубине; изолинии через 0,5 °C (целые — с подписями), интерполяция профилей замеров, весна 2022</div>';
+        +'<div style="font-size:10px;color:#777;margin-top:3px">Поле и маркеры — T грунта на выбранной глубине; изолинии через 0,5 °C (целые — с подписями), интерполяция профилей замеров, весна 2022; поле — в границах площадки ЧГОК (ЗУ 24:55:0500001:695)</div>';
       L.DomEvent.disableClickPropagation(d);
       d.querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>{ igiThermDepth=+b.dataset.d; igiThermNetLayer(false); });
       return d;
@@ -1699,37 +1726,40 @@ function thermDraw(){
   const ctx=thermCv.getContext('2d');
   ctx.clearRect(0,0,r.width,r.height);
   const pts=thermPoints(thermDepth);
-  if(pts.length<4){ ctx.fillStyle='#666'; ctx.font='12px sans-serif'; ctx.fillText('мало данных на этой глубине',10,20); return; }
+  if(!pts.length){ ctx.fillStyle='#666'; ctx.font='12px sans-serif'; ctx.fillText('нет замеров термометрии на этой глубине (загрузите журналы КИА)',10,20); return; }
   const b=map.getBounds().pad(0.15);
-  const GX=110, GY=Math.round(GX*r.height/r.width);
-  const STEP=0.3;                     // шаг изолиний, °C
+  const GX=110, GY=Math.max(8,Math.round(GX*r.height/r.width));
+  const STEP=0.2;                     // шаг изолиний, °C
   const tmin=-3, tmax=1;
+  const R2=1.2e-5;                    // радиус влияния точки ≈ 400 м (локальное поле у объекта)
+  const BUF2=7.3e-6;                  // поле только у объектов с замерами: буфер ≈ 300 м
+  const nearPt=(la,lo)=>{ for(const p of pts){ const d2=(p[0]-la)**2+((p[1]-lo)*Math.cos(la*Math.PI/180))**2; if(d2<=BUF2) return true; } return false; };
   const TG=[], PG=[];
   for(let gy=0; gy<GY; gy++){
     const rowT=[], rowP=[];
     for(let gx=0; gx<GX; gx++){
       const lat=b.getNorth()-(gy+0.5)/GY*(b.getNorth()-b.getSouth());
       const lon=b.getWest()+(gx+0.5)/GX*(b.getEast()-b.getWest());
-      if(!inDistricts(lat,lon)){ rowT.push(null); rowP.push(null); continue; }   // только в границах районов
+      rowP.push(map.latLngToContainerPoint([lat,lon]));
+      if(!inSite(lat,lon,40)||!nearPt(lat,lon)){ rowT.push(null); continue; }   // в границах площадки и у объектов с замерами
       let sw=0, swt=0;
       for(const [la,lo,t] of pts){
         const d2=(la-lat)**2+((lo-lon)*Math.cos(lat*Math.PI/180))**2;
-        if(d2>0.03) continue;                      // радиус ≈ 5.5 км
+        if(d2>R2) continue;
         const w=1/(d2+1e-6);
         sw+=w; swt+=w*t;
       }
       const t=sw?swt/sw:null;
       rowT.push(t);
-      rowP.push(map.latLngToContainerPoint([lat,lon]));
     }
     TG.push(rowT); PG.push(rowP);
   }
-  // 1) цветовые полосы с шагом 0,3 °C
+  // 1) цветовые полосы с шагом 0,2 °C
   for(let gy=0; gy<GY; gy++){
     for(let gx=0; gx<GX; gx++){
       const t=TG[gy][gx];
       if(t===null||t<-6||t>4) continue;
-      const tq=Math.round(t/STEP)*STEP;           // квантование по изолиниям 0,3 °C
+      const tq=Math.round(t/STEP)*STEP;           // квантование по изолиниям 0,2 °C
       const p0=PG[gy][gx], p1=PG[Math.min(gy+1,GY-1)][Math.min(gx+1,GX-1)];
       if(!p0||!p1) continue;
       ctx.fillStyle=isoColor(tq, tmin, tmax);
@@ -1738,7 +1768,7 @@ function thermDraw(){
     }
   }
   ctx.globalAlpha=1;
-  // 2) изолинии непрерывными линиями (marching squares): шаг 0,3 °C; целые значения — основные с подписями; 0 °C — утолщённая синяя
+  // 2) изолинии непрерывными линиями (marching squares): шаг 0,2 °C; целые значения — основные с подписями; 0 °C — утолщённая синяя
   const cellSeg=(gy,gx,Lv)=>{
     const t=[TG[gy][gx],TG[gy][gx+1],TG[gy+1][gx+1],TG[gy+1][gx]]; // 0=ЛВ,1=ПВ,2=ПН,3=ЛН
     if(t[0]===null||t[1]===null||t[2]===null||t[3]===null) return null;
@@ -1791,7 +1821,8 @@ function thermDraw(){
       ctx.textBaseline='alphabetic';
     }
   }
-  // 3) точки объектов (из скважин)
+  // 3) точки объектов (из скважин) + граница площадки поверх поля
+  drawSiteBoundary(ctx);
   pts.forEach(([la,lo,t])=>{
     const p=map.latLngToContainerPoint([la,lo]);
     ctx.beginPath(); ctx.arc(p.x,p.y,2.6,0,7);
@@ -1800,7 +1831,7 @@ function thermDraw(){
   });
   thermCtl.style.display='block';
   thermCtl.innerHTML='🌡 Глубина: '+THERM_DEPTHS.map(d=>`<button class="wbtn" data-td="${d}" style="padding:1px 6px; ${d===thermDepth?'background:#14295E;color:#fff':''}">${d} м</button>`).join(' ')+
-    ` · изолинии через 0,3 °C (целые — с подписями) · <span style="color:#08306b">━</span> 0 °C · <span style="color:#08306b">■</span><0°C <span style="color:#f50818">■</span>>0°C`;
+    ` · изолинии через 0,2 °C (целые — с подписями) · <span style="color:#08306b">━</span> 0 °C · <span style="color:#08306b">■</span><0°C <span style="color:#f50818">■</span>>0°C · поле — у объектов с замерами, в границах площадки`;
   thermCtl.querySelectorAll('[data-td]').forEach(bt=>bt.onclick=()=>{ thermDepth=+bt.dataset.td; thermDraw(); });
 }
 function thermToggle(on){
@@ -3969,6 +4000,7 @@ function applyUserData(){
   const touched=new Set();
   USERDATA.forEach(rec=>{ if(mergeUserRec(rec)){ touched.add(normAddrKey(rec.a)); if(rec.tOut!=null||rec.tSa!=null) air4Set(rec.a, rec.w, rec.date, rec); } });
   touched.forEach(k=>refreshObjStats(DB.objects[addrIndex[k]]));
+  if(typeof thermOn!=='undefined'&&thermOn&&typeof thermDraw==='function') thermDraw(); // автообновление оперативной теплокарты по мере загрузки замеров
 }
 function parseDateCell(v){
   if(v===null||v===undefined||v==='') return null;
@@ -8931,8 +8963,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"lturJrANmix9PDgowsiyFg==",ivV:"31J88QCZwkf9yrgs",wrapV:"fsZGRPfGL5G48RKy4kh7dT5KzQ3qsfNHHXKtPFsZItk50577vOFGnF4reJ1orGdI",saltE:"WlSmirW7NtxsyKG7KA3UsA==",ivE:"qDb6/3YzmHhpMvrK",wrapE:"Z+HK5/4ccFfLOj98Q0FUSYMF7PJhUGejfOu+XZyBqMfVHfqbbkF+sX8KX1iZLhvX",ivD:"AkRKPPHvlee0BxCo"};
-const BUILD="1479ee32";
+const ENC={saltV:"PLO5sKuP8B5GTv7zy80yYg==",ivV:"/c+cIVGPEntrzS4h",wrapV:"sz1C37GfFnRlHxpfdH+lOgBc46ANQ1IPCVFm5RMSE4AzBL0X0NPtYmQ13ASsVosx",saltE:"HgHWtjY1Ey03YWlj8bpikQ==",ivE:"EYSQDel/VO4kR5y1",wrapE:"FK3NBn4d08dCLbipKrhwn6J5jvNnL+8mmZO8LmGRKV/lfBiBqHvljakUA2AIg+6I",ivD:"RotSWncpTmvav0g9"};
+const BUILD="d071c596";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
