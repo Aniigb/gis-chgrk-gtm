@@ -776,14 +776,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=60c86649"></script>
-<script src="db_p2.js?v=60c86649"></script>
-<script src="db_p3.js?v=60c86649"></script>
-<script src="db_p4.js?v=60c86649"></script>
-<script src="db_p5.js?v=60c86649"></script>
-<script src="db_p6.js?v=60c86649"></script>
-<script src="db_p7.js?v=60c86649"></script>
-<script src="db_p8.js?v=60c86649"></script>
+<script src="db_p1.js?v=92c22955"></script>
+<script src="db_p2.js?v=92c22955"></script>
+<script src="db_p3.js?v=92c22955"></script>
+<script src="db_p4.js?v=92c22955"></script>
+<script src="db_p5.js?v=92c22955"></script>
+<script src="db_p6.js?v=92c22955"></script>
+<script src="db_p7.js?v=92c22955"></script>
+<script src="db_p8.js?v=92c22955"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1333,6 +1333,115 @@ function igiTAt(prof,dep){ // T на глубине dep: точное совпа
   }
   return null;
 }
+/* температурное поле в изолиниях с градацией для слоя «Термометрия на этапе изысканий (2022)» */
+let igiThermCv=null;
+function igiThermEnsure(){
+  if(igiThermCv) return;
+  igiThermCv=document.createElement('canvas');
+  igiThermCv.style.cssText='position:absolute; inset:0; z-index:350; pointer-events:none';
+  document.getElementById('map').appendChild(igiThermCv);
+  map.on('resize move zoom', ()=>{ if(map.hasLayer(igiThermGroup)) igiThermDrawField(); });
+}
+function igiThermDrawField(){
+  igiThermEnsure();
+  const r=map.getContainer().getBoundingClientRect();
+  igiThermCv.width=r.width; igiThermCv.height=r.height;
+  const ctx=igiThermCv.getContext('2d');
+  ctx.clearRect(0,0,r.width,r.height);
+  const pts=[];
+  (DB.objects||[]).forEach(o=>(o.igiTherm||[]).forEach(w=>{
+    if(w.x==null||w.y==null) return;
+    const ll=skLocalToWgs({sys:'МСК-165',x:w.x,y:w.y}); if(!ll) return;
+    const t=igiTAt(w.prof,igiThermDepth); if(t==null) return;
+    pts.push([ll.lat,ll.lon,t]);
+  }));
+  if(pts.length<4) return;                         // мало данных — остаются только маркеры
+  const b=map.getBounds().pad(0.1);
+  const GX=110, GY=Math.max(8,Math.round(GX*r.height/r.width));
+  const STEP=0.5;                                   // шаг изолиний, °C
+  const TG=[],PG=[];
+  let tLo=99,tHi=-99; pts.forEach(p=>{ tLo=Math.min(tLo,p[2]); tHi=Math.max(tHi,p[2]); });
+  for(let gy=0; gy<GY; gy++){
+    const rowT=[],rowP=[];
+    for(let gx=0; gx<GX; gx++){
+      const lat=b.getNorth()-(gy+0.5)/GY*(b.getNorth()-b.getSouth());
+      const lon=b.getWest()+(gx+0.5)/GX*(b.getEast()-b.getWest());
+      let sw=0,swt=0;
+      for(const [la,lo,t] of pts){
+        const d2=(la-lat)**2+((lo-lon)*Math.cos(lat*Math.PI/180))**2;
+        if(d2>0.03) continue;                       // радиус влияния точки
+        const w=1/(d2+1e-6); sw+=w; swt+=w*t;
+      }
+      rowT.push(sw?swt/sw:null);
+      rowP.push(map.latLngToContainerPoint([lat,lon]));
+    }
+    TG.push(rowT); PG.push(rowP);
+  }
+  // 1) цветовая градация с квантованием по шагу изолиний
+  for(let gy=0; gy<GY; gy++) for(let gx=0; gx<GX; gx++){
+    const t=TG[gy][gx]; if(t===null) continue;
+    const tq=Math.round(t/STEP)*STEP;
+    const p0=PG[gy][gx], p1=PG[Math.min(gy+1,GY-1)][Math.min(gx+1,GX-1)];
+    if(!p0||!p1) continue;
+    ctx.fillStyle=igiTColor(tq); ctx.globalAlpha=0.42;
+    ctx.fillRect(p0.x,p0.y,Math.abs(p1.x-p0.x)+1.5,Math.abs(p1.y-p0.y)+1.5);
+  }
+  ctx.globalAlpha=1;
+  // 2) изолинии непрерывными линиями (marching squares); целые значения — основные с подписями; 0 °C — утолщённая синяя
+  const cellSeg=(gy,gx,Lv)=>{
+    const t=[TG[gy][gx],TG[gy][gx+1],TG[gy+1][gx+1],TG[gy+1][gx]]; // 0=ЛВ,1=ПВ,2=ПН,3=ЛН
+    if(t[0]===null||t[1]===null||t[2]===null||t[3]===null) return null;
+    const P=[PG[gy][gx],PG[gy][gx+1],PG[gy+1][gx+1],PG[gy+1][gx]];
+    if(!P[0]||!P[1]||!P[2]||!P[3]) return null;
+    const idx=(t[0]>Lv?1:0)|(t[1]>Lv?2:0)|(t[2]>Lv?4:0)|(t[3]>Lv?8:0);
+    if(idx===0||idx===15) return null;
+    const E=(i,j)=>{ const f=(Lv-t[i])/(t[j]-t[i]); return [P[i].x+(P[j].x-P[i].x)*f, P[i].y+(P[j].y-P[i].y)*f]; };
+    const Te=E(0,1), Re=E(1,2), Be=E(2,3), Le=E(3,0);
+    switch(idx){
+      case 1: return [[Le,Te]];   case 2: return [[Te,Re]];
+      case 3: return [[Le,Re]];   case 4: return [[Re,Be]];
+      case 5: return [[Le,Te],[Re,Be]]; case 6: return [[Te,Be]];
+      case 7: return [[Le,Be]];   case 8: return [[Le,Be]];
+      case 9: return [[Te,Be]];   case 10: return [[Te,Re],[Le,Be]];
+      case 11: return [[Re,Be]];  case 12: return [[Le,Re]];
+      case 13: return [[Te,Re]];  case 14: return [[Le,Te]];
+    }
+    return null;
+  };
+  const L0=Math.ceil((tLo-0.01)/STEP)*STEP, L1=Math.floor((tHi+0.01)/STEP)*STEP;
+  for(let Lv=L0; Lv<=L1+1e-9; Lv+=STEP){
+    Lv=+Lv.toFixed(3);
+    const zero=Math.abs(Lv)<0.01;
+    const major=Math.abs(Lv-Math.round(Lv))<0.011;  // целые значения — основные линии
+    const segs=[];
+    for(let gy=0; gy<GY-1; gy++) for(let gx=0; gx<GX-1; gx++){
+      const s=cellSeg(gy,gx,Lv); if(s) segs.push(...s);
+    }
+    if(!segs.length) continue;
+    ctx.strokeStyle=zero?'#08306b':(major?'rgba(20,30,50,.78)':'rgba(60,70,90,.38)');
+    ctx.lineWidth=zero?2.4:(major?1.2:0.55);
+    ctx.lineCap='round';
+    ctx.beginPath();
+    segs.forEach(s=>{ ctx.moveTo(s[0][0],s[0][1]); ctx.lineTo(s[1][0],s[1][1]); });
+    ctx.stroke();
+    if(major||zero){ // подписи значений вдоль основных изолиний
+      ctx.font='600 10px "Segoe UI",sans-serif'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      const step=Math.max(1,Math.round(segs.length/10));
+      for(let i=0;i<segs.length;i+=step){
+        const a=segs[i][0], bb=segs[i][1];
+        let ang=Math.atan2(bb[1]-a[1],bb[0]-a[0]);
+        if(ang>Math.PI/2) ang-=Math.PI; if(ang<-Math.PI/2) ang+=Math.PI;
+        ctx.save(); ctx.translate((a[0]+bb[0])/2,(a[1]+bb[1])/2); ctx.rotate(ang);
+        const lab=String(+Lv.toFixed(1)).replace('.',',');
+        ctx.lineWidth=3.2; ctx.strokeStyle='rgba(255,255,255,.92)'; ctx.strokeText(lab,0,0);
+        ctx.fillStyle=zero?'#08306b':'#1c2430'; ctx.fillText(lab,0,0);
+        ctx.restore();
+      }
+      ctx.textBaseline='alphabetic';
+    }
+  }
+}
+function igiThermClear(){ if(igiThermCv) igiThermCv.getContext('2d').clearRect(0,0,igiThermCv.width,igiThermCv.height); }
 function igiThermNetLayer(notify){
   igiThermGroup.clearLayers();
   let n=0, noT=0;
@@ -1360,6 +1469,7 @@ function igiThermNetLayer(notify){
     if(n) map.fitBounds(igiThermGroup.getBounds().pad(0.15));
     else alert('Слой «Термометрия на этапе изысканий»: скважины с координатами отсутствуют.');
   }
+  igiThermDrawField();
   igiThermCtlShow(true);
 }
 function igiThermCtlShow(on){ // контрол выбора глубины + легенда шкалы (только при активном слое)
@@ -1374,13 +1484,13 @@ function igiThermCtlShow(on){ // контрол выбора глубины + л
         +'<div style="margin-top:6px;display:flex;align-items:center;gap:0">'
         +IGT_SCALE.map(s=>'<div style="flex:1;height:9px;background:'+s[1]+'" title="'+s[0]+' °C"></div>').join('')+'</div>'
         +'<div style="display:flex;justify-content:space-between;font-size:10px;color:#555"><span>−10</span><span>−5</span><span>−3</span><span>−1</span><span>0</span><span>+0,5</span><span>+2</span><span>+5 °C</span></div>'
-        +'<div style="font-size:10px;color:#777;margin-top:3px">Цвет маркера — T грунта на выбранной глубине (интерполяция профиля замера, весна 2022)</div>';
+        +'<div style="font-size:10px;color:#777;margin-top:3px">Поле и маркеры — T грунта на выбранной глубине; изолинии через 0,5 °C (целые — с подписями), интерполяция профилей замеров, весна 2022</div>';
       L.DomEvent.disableClickPropagation(d);
       d.querySelectorAll('button[data-d]').forEach(b=>b.onclick=()=>{ igiThermDepth=+b.dataset.d; igiThermNetLayer(false); });
       return d;
     };
     igiThermCtl.addTo(map);
-  } else if(igiThermCtl){ igiThermCtl.remove(); igiThermCtl=null; }
+  } else { igiThermClear(); if(igiThermCtl){ igiThermCtl.remove(); igiThermCtl=null; } }
 }
 
 /* ---------- слои гидрологической модели поверхностного стока (D8): город — ЦМР Copernicus 30 м; Оганер — ЦМР 5 см (тест) ---------- */
@@ -8818,8 +8928,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"nEO60sWqz2ggQ1cPsLaU7w==",ivV:"id5dfZHhzxZOOOV6",wrapV:"4pkP0e+Z8WZh3ItopmV6cSf8DRFkU9jdJzH9Aw8zV2bru9wzETrl9ODPG3Weeamk",saltE:"oTfManVyKyAVKxxAlCQMQA==",ivE:"3kggua4gyOGVsXAo",wrapE:"ZaizyOl9r/rJ9ufgOxNBztadlj5wc7/ksRGxJFbWQMrlxAJ0ozmsZFzdsOtQJZ9r",ivD:"8jDlg6hktj8ULrvT"};
-const BUILD="60c86649";
+const ENC={saltV:"+ocRwE4+egla8G0AaE9bAA==",ivV:"OMysAukUro1XlvN0",wrapV:"EVJeyHv6QceTEYaWbketITEqn+xkL50uDu53cASNXWu0KUQi6uTPZIDnCLKDhulP",saltE:"zp96K5lVJcDc8xHNwIPGRw==",ivE:"nYCIWhnmm57E7m5x",wrapE:"2DSsBw/GZJCkw7+RDILSQo4bTd8nDC+sBb6pH5wYngh8h3wbvZJhH86QwYAGTNUw",ivD:"XHVMcH6sml1rF8d7"};
+const BUILD="92c22955";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
