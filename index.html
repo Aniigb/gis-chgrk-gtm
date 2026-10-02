@@ -95,6 +95,14 @@
   #mapTicker .tk span{padding-right:90px; font-size:12.3px; letter-spacing:.02em}
   #mapTicker:hover .tk{animation-play-state:paused}
   #gtmCov{position:absolute; left:8px; bottom:34px; z-index:640; background:rgba(255,255,255,.93); border:1px solid var(--line); border-radius:8px; padding:6px 8px 4px; box-shadow:0 2px 10px rgba(20,30,40,.18); height:160px; box-sizing:border-box}
+  #gtmCov.closed{height:auto; padding-bottom:5px}
+  #gtmCov.closed #gtmCovC{display:none}
+  .cov-hdr{font:600 11px/1.35 'Segoe UI',sans-serif; color:#14295E; cursor:pointer; user-select:none; padding:0 1px 3px; white-space:nowrap}
+  .cov-hdr .arw{float:right; color:#667; margin-left:12px}
+  .legend .lgd-hdr{font:600 11px/1.35 'Segoe UI',sans-serif; color:#14295E; cursor:pointer; padding-bottom:2px; white-space:nowrap}
+  .legend .lgd-hdr .arw{float:right; color:#667; margin-left:12px}
+  .legend.closed{height:auto; justify-content:flex-start; padding:6px 10px}
+  .legend.closed > div:not(.lgd-hdr){display:none}
   @media (max-width:900px){ #gtmCov{transform:scale(.82); transform-origin:bottom left} }
   #wxTicker{position:absolute; left:0; right:64px; top:0; z-index:650; height:24px; overflow:hidden; display:flex; align-items:center; background:rgba(15,28,38,.88); color:#dfe9f0; border-bottom:1px solid #3d5386}
   #wxTicker .tk{display:flex; white-space:nowrap; animation:tkScroll 46s linear infinite; will-change:transform}
@@ -531,7 +539,8 @@
     </div>
   </div>
   <div id="map">
-    <div class="legend" id="statusLegend" title="Состояние объектов по критериям риска — живые счётчики, автообновление каждую минуту. Клик по строке — подсветить объекты категории на карте и приблизить их; повторный клик — снять подсветку">
+    <div class="legend closed" id="statusLegend" title="Индикаторы состояния объектов по критериям риска — живые счётчики, автообновление каждую минуту. Клик по заголовку — развернуть/свернуть; клик по строке — подсветить объекты категории на карте и приблизить их; повторный клик — снять подсветку">
+      <div class="lgd-hdr" id="statusLegendHdr">🚦 Индикаторы<span class="arw">▸</span></div>
       <div data-st="НОРМА"><span class="sw" style="background:#2e7d32"></span>НОРМА<b class="cnt"></b></div>
       <div data-st="РИСК"><span class="sw" style="background:#e08a00"></span>РИСК<b class="cnt"></b></div>
       <div data-st="КРИТИЧНО"><span class="sw" style="background:#c8372d"></span>КРИТИЧНО<b class="cnt"></b></div>
@@ -539,7 +548,7 @@
     </div>
     <div id="wxTicker" title="Текущая погода в Норильске (Open-Meteo, обновление каждые 30 мин; пауза — навести курсор)"><div class="tk"><span id="wxA">загрузка погоды…</span><span id="wxB" aria-hidden="true"></span></div></div>
     <div id="mapTicker" title="Бегущая строка: количество объектов по категориям состояния (пауза — навести курсор)"><div class="tk"><span id="tkA"></span><span id="tkB" aria-hidden="true"></span></div></div>
-    <div id="gtmCov" title="Охват объектов геотехническим мониторингом: термометрические скважины, пьезометры, геодезические марки, осмотры за 12 мес.; полный ГТМ — все четыре вида наблюдений. Клик по строке — фильтр списка и подсветка на карте с приближением. Автообновление каждую минуту и при изменении данных."><canvas id="gtmCovC" width="248" height="150"></canvas></div>
+    <div id="gtmCov" class="closed" title="Охват объектов геотехническим мониторингом: термометрические скважины, пьезометры, геодезические марки, осмотры за 12 мес.; полный ГТМ — все четыре вида наблюдений. Клик по заголовку — развернуть/свернуть; клик по строке диаграммы — фильтр списка и подсветка на карте с приближением. Автообновление каждую минуту и при изменении данных."><div class="cov-hdr" id="gtmCovHdr">📊 Охват ГТМ<span class="arw">▸</span></div><canvas id="gtmCovC" width="248" height="150"></canvas></div>
   </div>
   <div id="detail"><div class="empty">Выберите объект на карте или в списке слева</div></div>
   <div id="appFooter" title="Охрана результатов интеллектуальной деятельности: ст. 1259, 1261, 1271, 1333–1336 ГК РФ; ФЗ-98 «О коммерческой тайне»">© 2026 АНО «АНИИГБ» им. М.В. Кима — программная реализация и база данных; данные и документация по объектам — ООО «Черногорская ГРК». Все права защищены (ст. 1259, 1261, 1333 ГК РФ). Копирование и распространение без письменного согласия правообладателей запрещено.</div>
@@ -776,14 +785,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=d071c596"></script>
-<script src="db_p2.js?v=d071c596"></script>
-<script src="db_p3.js?v=d071c596"></script>
-<script src="db_p4.js?v=d071c596"></script>
-<script src="db_p5.js?v=d071c596"></script>
-<script src="db_p6.js?v=d071c596"></script>
-<script src="db_p7.js?v=d071c596"></script>
-<script src="db_p8.js?v=d071c596"></script>
+<script src="db_p1.js?v=a7353804"></script>
+<script src="db_p2.js?v=a7353804"></script>
+<script src="db_p3.js?v=a7353804"></script>
+<script src="db_p4.js?v=a7353804"></script>
+<script src="db_p5.js?v=a7353804"></script>
+<script src="db_p6.js?v=a7353804"></script>
+<script src="db_p7.js?v=a7353804"></script>
+<script src="db_p8.js?v=a7353804"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -1879,7 +1888,7 @@ function drawMarkers(){
       fillColor:kp?'#7b5ea7':markerColor(o),
       fillOpacity:sf===null?(window.kpOn?(kp?.95:.22):(covFilter?(covPass(o)?.92:.12):.92)):(sf?.95:.08)});
     m.bindTooltip(o.a+(statusOf(o)?' · '+statusOf(o):'')+(kp?' · КП '+kpYear:''),{direction:'top',offset:[0,-6]});
-    m.on('click',()=>select(i));
+    m.on('click',()=>{ if(geoMode&&document.body.classList.contains('role-edit')){ geoArmPick(i); } else select(i); });
     markers[i]=m;
   });
   applyFilter();
@@ -1887,7 +1896,7 @@ function drawMarkers(){
 /* --- кликабельная легенда статусов: подсветка выбранной категории на карте + приближение --- */
 function stSelApply(s){
   stFilter=(stFilter===s)?null:s;
-  document.querySelectorAll('#statusLegend div').forEach(x=>x.classList.toggle('sel',x.dataset.st===stFilter));
+  document.querySelectorAll('#statusLegend div[data-st]').forEach(x=>x.classList.toggle('sel',x.dataset.st===stFilter));
   drawMarkers();
   if(stFilter){
     const pts=[];
@@ -1900,26 +1909,70 @@ function stSelApply(s){
     else if(pts.length===1) map.setView(pts[0],13);
   }
 }
-document.querySelectorAll('#statusLegend div').forEach(el=>{
+document.querySelectorAll('#statusLegend div[data-st]').forEach(el=>{
   el.addEventListener('click',()=>stSelApply(el.dataset.st));
+});
+/* сворачиваемые панели карты: «Индикаторы» и «Охват ГТМ» — разворот кликом по заголовку */
+document.getElementById('statusLegendHdr').addEventListener('click',()=>{
+  const l=document.getElementById('statusLegend'); l.classList.toggle('closed');
+  document.querySelector('#statusLegendHdr .arw').textContent=l.classList.contains('closed')?'▸':'▾';
+});
+document.getElementById('gtmCovHdr').addEventListener('click',()=>{
+  const l=document.getElementById('gtmCov'); l.classList.toggle('closed');
+  document.querySelector('#gtmCovHdr .arw').textContent=l.classList.contains('closed')?'▸':'▾';
 });
 
 /* ---------- точное позиционирование по спутнику (оператор) ---------- */
 let GEOVR=JSON.parse(localStorage.getItem('gtm_geo')||'{}');
 DB.objects.forEach(o=>{ const g=GEOVR[o.a]; if(g){ o.lat=g[0]; o.lon=g[1]; o.p='уточнено вручную'; } });
-let geoMode=false, geoCtl=null;
+let geoMode=false, geoCtl=null, geoArm=null, geoArmTs=0;
 function hav(a,b,c,d){ const R=6371000, dLa=(c-a)*Math.PI/180, dLo=(d-b)*Math.PI/180;
   const s=Math.sin(dLa/2)**2+Math.cos(a*Math.PI/180)*Math.cos(c*Math.PI/180)*Math.sin(dLo/2)**2;
   return 2*R*Math.asin(Math.sqrt(s)); }
 function toggleGeoMode(){
-  geoMode=!geoMode;
-  if(geoCtl) geoCtl.style.background=geoMode?'#2e7d32':'#fff';
+  geoMode=!geoMode; geoArm=null;
+  if(geoCtl){ geoCtl.style.background=geoMode?'#2e7d32':'#fff'; geoCtl.style.color=geoMode?'#fff':'#1d2733'; }
   map.getContainer().style.cursor=geoMode?'crosshair':'';
+}
+function geoMove(i,lat,lng){ // перенос геопривязки объекта с сохранением в карточку (паспорт: поле позиции) и в локальное хранилище
+  const o=DB.objects[i];
+  o.lat=+lat.toFixed(6); o.lon=+lng.toFixed(6);
+  o.p='уточнено вручную по снимку ('+new Date().toLocaleDateString('ru-RU')+')';
+  GEOVR[o.a]=[o.lat,o.lon]; localStorage.setItem('gtm_geo', JSON.stringify(GEOVR));
+  if(markers[i]) markers[i].setLatLng([o.lat,o.lon]);
+  map.closePopup(); select(i);
+}
+function geoArmPick(i){ // выбор объекта для переноса: клик по маркеру в режиме позиционирования
+  geoArm=i; geoArmTs=Date.now();
+  const o=DB.objects[i];
+  const div=document.createElement('div');
+  div.style.cssText='font-size:13px; min-width:230px';
+  div.innerHTML='<b>📍 Перенос: '+esc(o.a)+'</b><br><span style="color:#666">кликните по карте новое место объекта (его положение на снимке)</span><br>';
+  const bc=document.createElement('button'); bc.textContent='Отмена'; bc.style.cssText='margin-top:5px; padding:3px 8px; cursor:pointer';
+  bc.onclick=()=>{ geoArm=null; map.closePopup(); };
+  div.appendChild(bc);
+  L.popup().setLatLng([o.lat,o.lon]).setContent(div).openOn(map);
 }
 map.on('click', e=>{
   if(!geoMode||!document.body.classList.contains('role-edit')) return;
+  if(Date.now()-geoArmTs<250) return;           // это был клик по маркеру — объект уже выбран
   const {lat, lng}=e.latlng;
-  let best=null, bd=1e9;
+  if(geoArm!==null){                            // объект выбран — подтверждение новой точки с сохранением в карточку
+    const i=geoArm, o=DB.objects[i];
+    const d=hav(lat,lng,o.lat,o.lon);
+    const div=document.createElement('div');
+    div.style.cssText='font-size:13px; min-width:240px';
+    div.innerHTML='<b>💾 Сохранить геопривязку в карточку?</b><br>'+esc(o.a)
+      +'<br><span style="color:#666">новая точка: '+lat.toFixed(6)+', '+lng.toFixed(6)+' · смещение '+d.toFixed(0)+' м · текущая точность: '+esc(o.p||'—')+'</span><br>';
+    const bs=document.createElement('button'); bs.textContent='💾 Сохранить в карточку'; bs.style.cssText='margin:5px 4px 0 0; padding:3px 8px; cursor:pointer; background:#2e7d32; color:#fff; border:none; border-radius:4px';
+    bs.onclick=()=>{ geoArm=null; geoMove(i,lat,lng); };
+    const bc=document.createElement('button'); bc.textContent='Отмена'; bc.style.cssText='margin-top:5px; padding:3px 8px; cursor:pointer';
+    bc.onclick=()=>{ geoArm=null; map.closePopup(); };
+    div.appendChild(bs); div.appendChild(bc);
+    L.popup().setLatLng(e.latlng).setContent(div).openOn(map);
+    return;
+  }
+  let best=null, bd=1e9;                        // объект не выбран — ближайший к точке клика (до 2 км)
   DB.objects.forEach((o,i)=>{
     if(o.lat==null) return;
     const d=hav(lat,lng,o.lat,o.lon);
@@ -1935,22 +1988,17 @@ map.on('click', e=>{
   div.innerHTML=`<b>${esc(o.a)}</b><br><span style="color:#666">расстояние от точки клика: ${bd.toFixed(0)} м · текущая точность: ${esc(o.p||'—')}</span><br>`;
   const b1=document.createElement('button'); b1.textContent='Открыть карточку'; b1.style.cssText='margin:4px 4px 0 0; padding:3px 8px; cursor:pointer';
   b1.onclick=()=>{ map.closePopup(); select(best); };
-  const b2=document.createElement('button'); b2.textContent='📍 Перенести координату сюда'; b2.style.cssText='margin:4px 0 0; padding:3px 8px; cursor:pointer; background:#2e7d32; color:#fff; border:none; border-radius:4px';
-  b2.onclick=()=>{
-    o.lat=+lat.toFixed(6); o.lon=+lng.toFixed(6); o.p='уточнено вручную';
-    GEOVR[o.a]=[o.lat,o.lon]; localStorage.setItem('gtm_geo', JSON.stringify(GEOVR));
-    if(markers[best]) markers[best].setLatLng([o.lat,o.lon]);
-    map.closePopup(); select(best);
-  };
+  const b2=document.createElement('button'); b2.textContent='💾 Перенести координату сюда'; b2.style.cssText='margin:4px 0 0; padding:3px 8px; cursor:pointer; background:#2e7d32; color:#fff; border:none; border-radius:4px';
+  b2.onclick=()=>{ geoMove(best,lat,lng); };
   div.appendChild(b1); div.appendChild(b2);
   L.popup().setLatLng(e.latlng).setContent(div).openOn(map);
 });
-// кнопка режима (только оператор — скрывается CSS по роли)
+// кнопка режима (только оператор — скрывается CSS по роли); компактная — как кнопки зума Leaflet
 geoCtl=document.createElement('button');
 geoCtl.id='geoPosBtn';
-geoCtl.textContent='📍 Позиционирование';
-geoCtl.style.cssText='position:absolute; top:84px; left:10px; z-index:700; background:#fff; border:2px solid rgba(0,0,0,.25); border-radius:5px; padding:4px 9px; font-size:12px; cursor:pointer';
-geoCtl.title='Режим уточнения координат: клик по сооружению на снимке → ближайший объект → перенос точки';
+geoCtl.textContent='📍';
+geoCtl.style.cssText='position:absolute; top:84px; left:10px; z-index:700; width:30px; height:30px; padding:0; display:flex; align-items:center; justify-content:center; background:#fff; color:#1d2733; border:2px solid rgba(0,0,0,.25); border-radius:5px; font-size:15px; line-height:1; cursor:pointer';
+geoCtl.title='Позиционирование — режим уточнения геопривязки: клик по маркеру объекта → клик по новому месту на снимке → «Сохранить в карточку»; либо клик по сооружению → ближайший объект → перенос точки';
 geoCtl.onclick=toggleGeoMode;
 document.getElementById('map').appendChild(geoCtl);
 drawMarkers();
@@ -1979,7 +2027,7 @@ function gtmCovDraw(){
   const ctx=cv.getContext('2d'); const W=cv.width, H=cv.height;
   ctx.clearRect(0,0,W,H);
   ctx.font='bold 10.5px Segoe UI, sans-serif'; ctx.fillStyle='#14295E';
-  ctx.fillText('Охват ГТМ · объектов: '+objs.length+(covFilter?'':' · клик по строке — фильтр'), 2, 12);
+  ctx.fillText('объектов: '+objs.length+(covFilter?'':' · клик по строке — фильтр'), 2, 12);
   const barX=118, barW=W-barX-44, rowH=26;
   rows.forEach(([key,label,v,color],i)=>{
     const y=20+i*rowH;
@@ -2017,7 +2065,7 @@ function gtmCovDraw(){
 function statusLegendDraw(){
   const cnt={'НОРМА':0,'РИСК':0,'КРИТИЧНО':0,'__none__':0};
   DB.objects.forEach(o=>{ const s=statusOf(o); if(s) cnt[s]++; else cnt.__none__++; });
-  document.querySelectorAll('#statusLegend div').forEach(el=>{
+  document.querySelectorAll('#statusLegend div[data-st]').forEach(el=>{
     const b=el.querySelector('.cnt'); if(b) b.textContent=' '+(cnt[el.dataset.st]||0);
   });
 }
@@ -8963,8 +9011,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"PLO5sKuP8B5GTv7zy80yYg==",ivV:"/c+cIVGPEntrzS4h",wrapV:"sz1C37GfFnRlHxpfdH+lOgBc46ANQ1IPCVFm5RMSE4AzBL0X0NPtYmQ13ASsVosx",saltE:"HgHWtjY1Ey03YWlj8bpikQ==",ivE:"EYSQDel/VO4kR5y1",wrapE:"FK3NBn4d08dCLbipKrhwn6J5jvNnL+8mmZO8LmGRKV/lfBiBqHvljakUA2AIg+6I",ivD:"RotSWncpTmvav0g9"};
-const BUILD="d071c596";
+const ENC={saltV:"Dd6CQ69GfcaGx4HhvVF5vQ==",ivV:"pFZiioVREWVfkoAd",wrapV:"cXR819C2ZEDpmfe8ugKFiDvKpOjv4XvmeWtxhei9n7iq9hipZs0kBI6VHoSiD4ef",saltE:"fkRuUGlO6risEzsYgiL9wQ==",ivE:"bZU4rER7toy/kLvx",wrapE:"UitESwjcgvL3j/WNnOWay1v9YSqvPthNAGJ8ZXrPIrGacWAGAQ6+RCTJxuqZG9j0",ivD:"fYKRk67OL7ffNQ6w"};
+const BUILD="a7353804";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
