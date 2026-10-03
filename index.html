@@ -818,14 +818,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=a35a3217"></script>
-<script src="db_p2.js?v=a35a3217"></script>
-<script src="db_p3.js?v=a35a3217"></script>
-<script src="db_p4.js?v=a35a3217"></script>
-<script src="db_p5.js?v=a35a3217"></script>
-<script src="db_p6.js?v=a35a3217"></script>
-<script src="db_p7.js?v=a35a3217"></script>
-<script src="db_p8.js?v=a35a3217"></script>
+<script src="db_p1.js?v=fcb7d20d"></script>
+<script src="db_p2.js?v=fcb7d20d"></script>
+<script src="db_p3.js?v=fcb7d20d"></script>
+<script src="db_p4.js?v=fcb7d20d"></script>
+<script src="db_p5.js?v=fcb7d20d"></script>
+<script src="db_p6.js?v=fcb7d20d"></script>
+<script src="db_p7.js?v=fcb7d20d"></script>
+<script src="db_p8.js?v=fcb7d20d"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -2771,8 +2771,8 @@ function skEditOpen(o){
 }
 /* IGICAT_UI */
 /* ================= СВОДНЫЕ РЕЕСТРЫ ИГИ-2022 (db.igiCat) + МОДУЛЬ ИНЖЕНЕРНО-ГЕОЛОГИЧЕСКИХ СЕЧЕНИЙ ================= */
-const IGE_COL={'0.1.1.1':'#bdbdbd','3.1.3.1':'#9ccc65','6.1.2.1':'#64b5f6','7.1.3.1':'#d4a75a','8.1.2.1':'#ba93d8','9.1.1.1':'#ef9a9a','10.1.1.1':'#e57373'};
-const IGE_ORD=['0.1.1.1','3.1.3.1','6.1.2.1','7.1.3.1','8.1.2.1','9.1.1.1','10.1.1.1'];
+const IGE_COL={'0.1.1.1':'#bdbdbd','3.1.3.1':'#9ccc65','6.1.2.1':'#64b5f6','7.1.3.1':'#d4a75a','8.1.1.1':'#a58ac9','8.1.2.1':'#ba93d8','9.1.1.1':'#ef9a9a','10.1.1.1':'#e57373','ПРС':'#8d6e63'};
+const IGE_ORD=['0.1.1.1','3.1.3.1','6.1.2.1','7.1.3.1','8.1.1.1','8.1.2.1','9.1.1.1','10.1.1.1'];
 const IGE_ROCK=['9.1.1.1','10.1.1.1'];
 function igiObjSub(o){
   const c=String((o.a||'')).split(/[\s·]/)[0];
@@ -2795,8 +2795,14 @@ function igiWellsOf(sub){ // [[wid,W],...] по подплощадке; для '
   out.sort((a,b)=>a[0].localeCompare(b[0]));
   return out;
 }
-function igiColumn(wid){ // схематичная колонка: типовая последовательность подплощадки ∩ вскрытые ИГЭ (табл. 11.1), мощности — середины диапазонов, последний слой — до забоя
+function igiColumn(wid){ // колонка скважины: ТОЧНЫЕ границы из прил. Г4 (lithoExact); при отсутствии — схема по типовым разрезам (seq)
   const cat=DB.igiCat, W=cat&&cat.wells[wid]; if(!W||!W.dep) return null;
+  const ex=cat.lithoExact&&cat.lithoExact[wid];
+  if(ex&&ex.layers&&ex.layers.length){
+    const layers=ex.layers.map(l=>({ige:l.ige||'ПРС', igeRaw:l.ige||null, geo:l.geo||'', desc:l.desc||'',
+      top:l.top, bot:l.bot, topAbs:+(W.h-l.top).toFixed(2), botAbs:+(W.h-l.bot).toFixed(2), last:false}));
+    return {w:wid, W:W, layers:layers, exact:true};
+  }
   const s=cat.seq[W.sub]||cat.seq[W.grp]; if(!s) return null;
   const pres=cat.wellIge[wid]||[];
   const codes=s.seq.filter(c=>pres.indexOf(c)>=0);
@@ -2825,10 +2831,15 @@ function igiColumn(wid){ // схематичная колонка: типова�
   });
   return {w:wid, W:W, layers:layers};
 }
-function igiTProf(){ // карта термопрофилей ИГИ-2022 по шифру скважины
+function igiTProf(){ // карта термопрофилей ИГИ-2022 по шифру скважины: прил. 25 + fallback — профили прил. Г4 (lithoExact.thermo)
   if(window._IGI_TPROF) return window._IGI_TPROF;
   const m={};
   (DB.objects||[]).forEach(o=>(o.igiTherm||[]).forEach(r=>{ if(r.w&&r.prof&&r.prof.length>2) m[r.w]=r.prof; }));
+  const le=(DB.igiCat&&DB.igiCat.lithoExact)||{};
+  for(const w in le){
+    if(!m[w]&&le[w].thermo&&le[w].thermo[0]&&le[w].thermo[0].points&&le[w].thermo[0].points.length>2)
+      m[w]=le[w].thermo[0].points;
+  }
   window._IGI_TPROF=m; return m;
 }
 function igiZeroDepth(prof){ // глубина изотермы 0 °C (интерполяция первого перехода +→−)
@@ -2851,7 +2862,7 @@ function igiReportsHtml(o){
   return `<details class="igt" style="border-width:2px"><summary><b>📚 Сводный перечень инженерно-геологических отчётов</b> · ${cat.reports.length} документов · строка объекта выделена</summary>
   <div style="padding:8px 10px; overflow-x:auto">
   <table class="rows static" style="min-width:860px"><thead><tr><th>Документ</th><th>Год</th><th>Стадия</th><th>Состав (тома/приложения)</th></tr></thead><tbody>${rows}</tbody></table>
-  <div class="normref" style="margin-top:6px">Графические приложения Г4 «Инженерно-геологические колонки» и Г5 «Разрезы» (Том 5) переданы в формате DWG — текстовая выемка слоёв по скважинам выполняется после конвертации; до этого литологические колонки на сайте строятся как схематичные (по типовым разрезам ПЗ Том 1, разд. 14 и вскрытым мощностям табл. 11.1).</div>
+  <div class="normref" style="margin-top:6px">Точные границы слоёв и термометрия этапа ИГИ загружены из приложения Г4 «Инженерно-геологические колонки» (Том 5, DWG конвертирован офлайн: 70 скважин, 171 слой, 1103 термозамера) — колонки, сечения и 3D-модель строятся по ним. Типовые последовательности ИГЭ по подплощадкам (ПЗ Том 1, разд. 14; табл. 11.1) сохранены как справочный материал.</div>
   </div></details>`;
 }
 /* ---------- блок 2: сводный перечень скважин ИГИ-2022 ---------- */
@@ -2873,7 +2884,7 @@ function igiWellsCatHtml(o){
     }).join('');
     return `<details class="igt" ${sb===sub?'open':''}><summary>🕳 Подплощадка ${sb} · ${ws.length} скв.</summary>
     <div style="padding:4px 6px; overflow-x:auto"><table class="rows static" style="min-width:1020px"><thead><tr>
-    <th>Скважина</th><th>X (север), м</th><th>Y (восток), м</th><th>H, м</th><th>Глубина, м</th><th>Дата бурения</th><th>Термометрия</th><th>WGS-84</th><th>ИГЭ (схема, сверху-вниз)</th><th>Карта</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
+    <th>Скважина</th><th>X (север), м</th><th>Y (восток), м</th><th>H, м</th><th>Глубина, м</th><th>Дата бурения</th><th>Термометрия</th><th>WGS-84</th><th>ИГЭ (по прил. Г4, сверху-вниз)</th><th>Карта</th></tr></thead><tbody>${rows}</tbody></table></div></details>`;
   }).join('');
   return `<details class="igt" style="border-width:2px"><summary><b>🕳 Сводный перечень скважин/термоскважин ИГИ-2022</b> · площадка ${grp}: ${mine.length} скв. (всего по комплексу 70) · координаты МСК-165, высоты Балтийская 1977</summary>
   <div style="padding:8px 10px">
@@ -2914,16 +2925,17 @@ function igiIgeHtml(o){
     const mark=mine.has(c)?' <span class="chip on" style="cursor:default" title="Вскрыт скважинами площадки объекта">вскрыт на площадке</span>':'';
     return `<details class="igt"><summary><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:${IGE_COL[c]||'#ccc'};margin-right:6px"></span><b>ИГЭ ${esc(e.code)}</b>${mark} <span style="color:var(--mut);font-size:11px">${esc(e.strat)} · ${esc(e.name.slice(0,80))}${e.name.length>80?'…':''}</span></summary>
     <div style="padding:6px 10px 9px; font-size:12.4px">${esc(e.desc||e.name)}
+    ${e.approx?'<div class="normref" style="margin:4px 0">⚠ '+esc(e.approx)+'</div>':''}
     <div style="font-weight:600;margin:6px 0 2px">Механические (${e.state==='frz'?'мерзлое состояние, прил. 14':e.state==='thw'?'талое состояние, прил. 15':'скальный, прил. 16'})</div>
     <table class="rows static"><tbody>${mech}</tbody></table>
     ${thTab}${crTab}</div></details>`;
   };
-  return `<details class="igt" style="border-width:2px"><summary><b>🧱 Инженерно-геологические элементы (ИГЭ)</b> · 12 элементов: 5 мерзлых, 5 талых, 2 скальных · механика + теплофизика + геокриология</summary>
+  return `<details class="igt" style="border-width:2px"><summary><b>🧱 Инженерно-геологические элементы (ИГЭ)</b> · 13 элементов: 6 мерзлых, 5 талых, 2 скальных · механика + теплофизика + геокриология</summary>
   <div style="padding:8px 10px">
-  <div class="normref" style="margin:0 0 8px">Характеристики — из таблиц нормативных/расчётных характеристик (прил. 14–16 Том 2), теплофизики (ПЗ, табл. 6.5; протокол — прил. 21 Том 3) и оценки пучинистости (ПЗ, табл. 8.7, 8.8). ИГЭ 3.1.3.1* и 3.2.3.1* — по архивным данным. Мерзлые и талые разновидности — единые генетические тела в двух состояниях.</div>
-  <div class="sect" style="font-size:12px">Мерзлое состояние</div>${IGE_ORD.slice(0,5).map(c=>card(c)).join('')}
+  <div class="normref" style="margin:0 0 8px">Характеристики — из таблиц нормативных/расчётных характеристик (прил. 14–16 Том 2), теплофизики (ПЗ, табл. 6.5; протокол — прил. 21 Том 3) и оценки пучинистости (ПЗ, табл. 8.7, 8.8). ИГЭ 3.1.3.1* и 3.2.3.1* — по архивным данным. ИГЭ 8.1.1.1 выделен по прил. Г4 (вскрыт CK-067), свойства — по аналогии с 8.1.2.1. Мерзлые и талые разновидности — единые генетические тела в двух состояниях.</div>
+  <div class="sect" style="font-size:12px">Мерзлое состояние</div>${IGE_ORD.slice(0,6).map(c=>card(c)).join('')}
   <div class="sect" style="font-size:12px">Талое состояние</div>${['0.2.1.1','3.2.3.1','6.2.2.1','7.2.3.1','8.2.2.1'].map(c=>card(c)).join('')}
-  <div class="sect" style="font-size:12px">Скальные грунты</div>${IGE_ORD.slice(5).map(c=>card(c)).join('')}
+  <div class="sect" style="font-size:12px">Скальные грунты</div>${IGE_ORD.slice(6).map(c=>card(c)).join('')}
   </div></details>`;
 }
 /* ---------- блок 4: литологические колонки (схема) ---------- */
@@ -2932,7 +2944,7 @@ function igiColSvg(col,hh){ // мини-колонка SVG: col — резуль
   let y=16;
   const r=col.layers.map(l=>{
     const h=(l.bot-l.top)*sc, y0=y; y+=h;
-    return `<rect x="4" y="${y0.toFixed(1)}" width="${wpx-8}" height="${h.toFixed(1)}" fill="${IGE_COL[l.ige]}" stroke="#5b5548" stroke-width="0.5"><title>ИГЭ ${l.ige} · ${String(l.top).replace('.',',')}–${String(l.bot).replace('.',',')} м (абс. ${String(l.topAbs).replace('.',',')}…${String(l.botAbs).replace('.',',')})</title></rect>`;
+    return `<rect x="4" y="${y0.toFixed(1)}" width="${wpx-8}" height="${h.toFixed(1)}" fill="${IGE_COL[l.ige]||'#cfc8b8'}" stroke="#5b5548" stroke-width="0.5"><title>${l.ige==='ПРС'?'Почвенно-растительный слой (погребённый, без шифра в прил. Г4)':'ИГЭ '+l.ige} · ${String(l.top).replace('.',',')}–${String(l.bot).replace('.',',')} м (абс. ${String(l.topAbs).replace('.',',')}…${String(l.botAbs).replace('.',',')})${l.desc?'\n'+l.desc.slice(0,120):''}</title></rect>`;
   }).join('');
   return `<svg width="${wpx}" height="${hh}" viewBox="0 0 ${wpx} ${hh}" style="background:#fff;border:1px solid var(--line);border-radius:4px">
   <text x="${wpx/2}" y="10" text-anchor="middle" font-size="8.5" font-weight="700" fill="#333">${col.w.replace('CK-','')}</text>${r}
@@ -2952,18 +2964,38 @@ function igiLithoHtml(o){
   <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:8px">${cells}</div>
   <div id="lithoView"></div>
   <button class="dbtn" id="igiSecBtn" style="margin-top:6px">📈 Конструктор инженерно-геологических разрезов</button>
+  <button class="dbtn" id="igi3dBtn" style="margin-top:6px; margin-left:6px; font-weight:700">🧊 3D-геология площадки</button>
   </div></details>`;
+}
+function igiThermSvg(w){ // мини-график термопрофиля ИГИ (прил. Г4): T по X, глубина по Y
+  const le=DB.igiCat&&DB.igiCat.lithoExact&&DB.igiCat.lithoExact[w];
+  const th=le&&le.thermo&&le.thermo[0]; if(!th||!th.points||th.points.length<3) return '';
+  const pts=th.points, W=190,H=210,mL=30,mR=8,mT=18,mB=20;
+  const dep=Math.max.apply(null,pts.map(p=>p[0]));
+  const tMin=Math.min.apply(null,pts.map(p=>p[1])), tMax=Math.max.apply(null,pts.map(p=>p[1]));
+  const pad=0.5, x0=Math.min(tMin,-pad), x1=Math.max(tMax,pad);
+  const X=t=>mL+(t-x0)/(x1-x0)*(W-mL-mR), Y=d=>mT+d/dep*(H-mT-mB);
+  let g=`<line x1="${X(0)}" y1="${mT}" x2="${X(0)}" y2="${H-mB}" stroke="#EF3F23" stroke-width="1" stroke-dasharray="4,3"/>`;
+  for(let d=0;d<=dep;d+=dep>12?5:2){ g+=`<line x1="${mL}" y1="${Y(d)}" x2="${W-mR}" y2="${Y(d)}" stroke="#e4ded0" stroke-width="0.5"/><text x="${mL-3}" y="${Y(d)+3}" text-anchor="end" font-size="8" fill="#777">${d}</text>`; }
+  [Math.ceil(x0),0,Math.floor(x1)].forEach((t,i,arr)=>{ if(arr.indexOf(t)===i) g+=`<text x="${X(t)}" y="${H-mB+12}" text-anchor="middle" font-size="8" fill="#777">${t}</text>`; });
+  g+=`<polyline points="${pts.map(p=>X(p[1]).toFixed(1)+','+Y(p[0]).toFixed(1)).join(' ')}" fill="none" stroke="#14295E" stroke-width="1.6"/>`;
+  g+=pts.map(p=>`<circle cx="${X(p[1]).toFixed(1)}" cy="${Y(p[0]).toFixed(1)}" r="1.6" fill="#14295E"><title>${String(p[0]).replace('.',',')} м: ${String(p[1]).replace('.',',')} °C</title></circle>`).join('');
+  g+=`<text x="${W/2}" y="10" text-anchor="middle" font-size="9" font-weight="700" fill="#14295E">Термометрия ИГИ · ${th.date||''}</text>`;
+  return `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}" style="background:#fff;border:1px solid var(--line);border-radius:4px">${g}</svg>`;
 }
 function igiLithoView(w){
   const col=igiColumn(w); if(!col) return;
   const e=(DB.igiCat.ige)||{};
-  const rows=col.layers.map(l=>`<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${IGE_COL[l.ige]}"></span> ИГЭ ${l.ige}</td>
-  <td>${esc((e[l.ige]||{}).name||'')}</td><td>${String(l.top).replace('.',',')}</td><td>${l.last?'≥ '+String(l.bot).replace('.',','):String(l.bot).replace('.',',')}</td>
+  const rows=col.layers.map(l=>`<tr><td><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:${IGE_COL[l.ige]||'#cfc8b8'}"></span> ${l.ige==='ПРС'?'ПРС*':'ИГЭ '+l.ige}</td>
+  <td style="white-space:nowrap">${esc(l.geo||'—')}</td><td>${esc(l.desc||(e[l.ige]||{}).name||'')}</td><td>${String(l.top).replace('.',',')}</td><td>${l.last?'≥ '+String(l.bot).replace('.',','):String(l.bot).replace('.',',')}</td>
   <td>${String(l.topAbs).replace('.',',')}</td><td>${String(l.botAbs).replace('.',',')}</td></tr>`).join('');
-  document.getElementById('lithoView').innerHTML=`<div style="display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--line); border-radius:6px; padding:8px 12px; margin-bottom:6px">
+  const srcTag=col.exact?'<span class="chip on" style="cursor:default">точные границы · прил. Г4</span>':'<span class="chip" style="cursor:default">схема · ПЗ табл. 11.1</span>';
+  document.getElementById('lithoView').innerHTML=`<div style="display:flex; gap:14px; align-items:flex-start; background:#fff; border:1px solid var(--line); border-radius:6px; padding:8px 12px; margin-bottom:6px; flex-wrap:wrap">
   ${igiColSvg(col,200)}
-  <div style="flex:1; overflow-x:auto"><b>${w}</b> · X ${col.W.x.toLocaleString('ru-RU')}, Y ${col.W.y.toLocaleString('ru-RU')} (МСК-165) · H устья ${String(col.W.h).replace('.',',')} м · ${col.W.lat.toFixed(5)}, ${col.W.lon.toFixed(5)} (WGS-84) · забой ${String(col.W.dep).replace('.',',')} м
-  <table class="rows static" style="margin-top:5px; min-width:680px"><thead><tr><th>ИГЭ</th><th>Грунт</th><th>Кровля, м</th><th>Подошва, м</th><th>Кровля, абс. м</th><th>Подошва, абс. м</th></tr></thead><tbody>${rows}</tbody></table></div></div>`;
+  <div style="flex:1; overflow-x:auto; min-width:420px"><b>${w}</b> ${srcTag} · X ${col.W.x.toLocaleString('ru-RU')}, Y ${col.W.y.toLocaleString('ru-RU')} (МСК-165) · H устья ${String(col.W.h).replace('.',',')} м · ${col.W.lat.toFixed(5)}, ${col.W.lon.toFixed(5)} (WGS-84) · забой ${String(col.W.dep).replace('.',',')} м
+  <table class="rows static" style="margin-top:5px; min-width:680px"><thead><tr><th>ИГЭ</th><th>Геол. индекс</th><th>Грунт (по описанию прил. Г4)</th><th>Кровля, м</th><th>Подошва, м</th><th>Кровля, абс. м</th><th>Подошва, абс. м</th></tr></thead><tbody>${rows}</tbody></table>
+  ${col.layers.some(l=>l.ige==='ПРС')?'<div class="normref" style="margin-top:3px">ПРС* — погребённый почвенно-растительный слой; в прил. Г4 шифр ИГЭ не подписан (мощность ≤ 0,2 м).</div>':''}</div>
+  <div>${igiThermSvg(w)}</div></div>`;
 }
 /* ---------- агрегатор + события ---------- */
 function igiCatHtml(o){
@@ -2982,6 +3014,7 @@ function igiCatWire(o,el){
       .bindPopup('<b>Скважина '+esc(b.dataset.w)+'</b> (ИГИ-2022)').openPopup();
   });
   const sb=el.querySelector('#igiSecBtn'); if(sb) sb.onclick=()=>igiSecOpen(o);
+  const b3=el.querySelector('#igi3dBtn'); if(b3) b3.onclick=()=>geo3dOpen(o);
 }
 /* ================= МОДУЛЬ ИНЖЕНЕРНО-ГЕОЛОГИЧЕСКИХ СЕЧЕНИЙ ================= */
 let SEC={sel:[], ve:5};
@@ -2996,8 +3029,8 @@ function igiSecOpen(o){
     return `<div style="margin:2px 0"><span style="font-size:11.5px;color:var(--mut)">${g}:</span> ${btns}</div>`;
   }).join('');
   document.getElementById('secModalBody').innerHTML=`
-  <h2 style="font-size:15px">📈 Конструктор инженерно-геологических разрезов (схема)</h2>
-  <div class="normref">Выберите скважины в порядке линии разреза (или «Автоцепочка» — упорядочит по ближайшему соседу от первой). Корреляция — по одноимённым ИГЭ с выклиниванием линз между скважинами; рельеф и отметки — по каталогу (прил. 6); колонки — схематичные (ПЗ, разд. 14 + табл. 11.1). Красным пунктиром — изотерма 0 °C по замерам ИГИ-2022 (прил. 25).</div>
+  <h2 style="font-size:15px">📈 Конструктор инженерно-геологических разрезов</h2>
+  <div class="normref">Выберите скважины в порядке линии разреза (или «Автоцепочка» — упорядочит по ближайшему соседу от первой). Корреляция — по одноимённым ИГЭ с выклиниванием линз между скважинами; рельеф и отметки — по каталогу (прил. 6); колонки — ТОЧНЫЕ по прил. Г4 (Том 5). Красным пунктиром — изотерма 0 °C по замерам ИГИ-2022 (прил. 25 и прил. Г4).</div>
   <div style="max-height:150px; overflow-y:auto; border:1px solid var(--line); border-radius:6px; padding:5px 8px; margin-bottom:6px">${ghtml}</div>
   <div style="margin:6px 0">Линия разреза: <span id="secSel" style="font-weight:600; color:var(--mut)">не выбрана</span>
     <button class="dbtn" id="secAuto" title="Упорядочить по ближайшему соседу от первой скважины">⇄ Автоцепочка</button>
@@ -3073,8 +3106,9 @@ function igiSecSvg(wids,ve){
   // определения: штриховка скальных
   g+=`<defs><pattern id="rkh" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#ef9a9a"/><line x1="0" y1="0" x2="0" y2="7" stroke="#b04a3a" stroke-width="1.4"/></pattern>
   <pattern id="rkh2" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#e57373"/><line x1="0" y1="0" x2="0" y2="7" stroke="#8e3226" stroke-width="1.4"/></pattern></defs>`;
-  // тела ИГЭ: пробеги по скважинам с выклиниванием
-  IGE_ORD.forEach(code=>{
+  // тела ИГЭ: пробеги по скважинам с выклиниванием (коды сверх IGE_ORD — напр. погр. ПРС из прил. Г4)
+  const extraCodes=[...new Set(cols.flatMap(c=>c.layers.map(l=>l.ige)).filter(c=>c&&IGE_ORD.indexOf(c)<0))];
+  IGE_ORD.concat(extraCodes).forEach(code=>{
     const has=cols.map(c=>c.layers.find(l=>l.ige===code));
     let i=0;
     while(i<cols.length){
@@ -3090,7 +3124,7 @@ function igiSecSvg(wids,ve){
       pts.push(...bots.reverse());
       if(i>0){ const midX=(X(i-1)+X(i))/2; pts.push([midX,Y(has[i].botAbs)]); }
       const fill=IGE_ROCK.indexOf(code)>=0?(code==='9.1.1.1'?'url(#rkh)':'url(#rkh2)'):IGE_COL[code];
-      g+=`<polygon points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${fill}" stroke="#4a4438" stroke-width="0.8"><title>ИГЭ ${code} · ${escS((e[code]||{}).name||'')}</title></polygon>`;
+      g+=`<polygon points="${pts.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="${fill}" stroke="#4a4438" stroke-width="0.8"><title>${code==='ПРС'?'Почвенно-растительный слой погребённый':'ИГЭ '+code+' · '+escS((e[code]||{}).name||'')}</title></polygon>`;
       i=j+1;
     }
   });
@@ -3121,16 +3155,283 @@ function igiSecSvg(wids,ve){
   cols.forEach((c,i)=>{ const pr=prof[c.w]; if(!pr) return; const z0=igiZeroDepth(pr); if(z0!=null) zp.push([X(i),Y(c.W.h-z0)]); });
   if(zp.length>1) g+=`<polyline points="${zp.map(p=>p[0].toFixed(1)+','+p[1].toFixed(1)).join(' ')}" fill="none" stroke="#EF3F23" stroke-width="1.6" stroke-dasharray="7,4"><title>Изотерма 0 °C по замерам ИГИ-2022 (прил. 25)</title></polyline>`;
   // заголовок и легенда
-  g+=`<text x="${mL}" y="20" font-size="13" font-weight="700" fill="#14295E">Инженерно-геологический разрез I—I по линии ${cols.map(c=>c.w).join(' – ')} (схема)</text>`;
-  g+=`<text x="${mL}" y="36" font-size="9.5" fill="#666">Колонки схематичные: ПЗ Том 1, разд. 14 + табл. 11.1; точные границы — прил. Г4 (Том 5). Вертикальное преувеличение ×${ve}. Красный пунктир — изотерма 0 °C (замеры 04–05.2022).</text>`;
-  let lx=mL; const usedCodes=IGE_ORD.filter(c=>cols.some(cc=>cc.layers.some(l=>l.ige===c)));
+  g+=`<text x="${mL}" y="20" font-size="13" font-weight="700" fill="#14295E">Инженерно-геологический разрез I—I по линии ${cols.map(c=>c.w).join(' – ')}${cols.every(c=>c.exact)?'':' (есть схематичные колонки)'}</text>`;
+  g+=`<text x="${mL}" y="36" font-size="9.5" fill="#666">Колонки — по прил. Г4 «Инженерно-геологические колонки» (Том 5, точные границы слоёв). Вертикальное преувеличение ×${ve}. Красный пунктир — изотерма 0 °C (замеры ИГИ 04–05.2022).</text>`;
+  let lx=mL; const usedCodes=IGE_ORD.concat(extraCodes).filter(c=>cols.some(cc=>cc.layers.some(l=>l.ige===c)));
   usedCodes.forEach(c=>{
     const rock=IGE_ROCK.indexOf(c)>=0;
-    g+=`<rect x="${lx}" y="${Hp-24}" width="12" height="10" fill="${rock?(c==='9.1.1.1'?'url(#rkh)':'url(#rkh2)'):IGE_COL[c]}" stroke="#4a4438" stroke-width="0.6"/><text x="${lx+16}" y="${Hp-15}" font-size="9.5" fill="#333">ИГЭ ${c}</text>`;
+    g+=`<rect x="${lx}" y="${Hp-24}" width="12" height="10" fill="${rock?(c==='9.1.1.1'?'url(#rkh)':'url(#rkh2)'):IGE_COL[c]}" stroke="#4a4438" stroke-width="0.6"/><text x="${lx+16}" y="${Hp-15}" font-size="9.5" fill="#333">${c==='ПРС'?'погр. ПРС':'ИГЭ '+c}</text>`;
     lx+=86;
   });
   g+=`<line x1="${lx+6}" y1="${Hp-19}" x2="${lx+30}" y2="${Hp-19}" stroke="#EF3F23" stroke-width="1.6" stroke-dasharray="5,3"/><text x="${lx+34}" y="${Hp-15}" font-size="9.5" fill="#333">t = 0 °C</text>`;
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${Wp.toFixed(0)}" height="${Hp.toFixed(0)}" viewBox="0 0 ${Wp.toFixed(0)} ${Hp.toFixed(0)}" style="background:#fffdf8;font-family:'Segoe UI',Arial,sans-serif">${g}</svg>`;
+}
+
+/* ================= 3D-ГЕОЛОГИЯ ПЛОЩАДКИ (точные слои прил. Г4) ================= */
+const G3D={scene:null,renderer:null,cam:null,th:-0.8,ph:1.0,dist:800,cx:0,cy:0,cz:0,auto:false,ve:5,sub:null,timer:null,
+  show:{surf:true,wells:true,iso:false,ground:true}};
+function _g3dCss(){
+  if(document.getElementById('g3dstyle')) return;
+  const st=document.createElement('style'); st.id='g3dstyle';
+  st.textContent='#geo3dModal{display:none;position:fixed;inset:0;z-index:1150;background:rgba(15,28,38,.62)}'
+   +'#geo3dModal .box{background:var(--panel);width:1240px;max-width:98vw;max-height:96vh;margin:1.6vh auto;border-radius:10px;padding:12px 18px;box-shadow:0 10px 40px rgba(0,0,0,.4);overflow-y:auto;position:relative}'
+   +'#geo3dModal .close{position:absolute;top:8px;right:12px;border:none;background:none;font-size:20px;cursor:pointer;color:var(--mut)}'
+   +'#g3dView{width:100%;height:620px;background:#fdfbf4;border:1px solid var(--line);border-radius:8px;cursor:grab;overflow:hidden}'
+   +'#g3dView:active{cursor:grabbing}.g3dTgl{padding:1px 8px;font-size:11.5px;margin-right:3px}';
+  document.head.appendChild(st);
+}
+function _g3dLoadThree(cb){
+  if(window.THREE) return cb();
+  const s=document.createElement('script');
+  s.src='https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js';
+  s.onload=function(){ cb(); };
+  s.onerror=function(){
+    document.getElementById('g3dView').innerHTML='<div class="note" style="padding:20px">Не удалось загрузить three.js с CDN — проверьте соединение и откройте снова.</div>';
+  };
+  document.head.appendChild(s);
+}
+function _g3dDelaunay(pts){ // pts [[x,y]] → треугольники [i,j,k] (правило пустой окружности)
+  const n=pts.length, tris=[];
+  for(let i=0;i<n-2;i++) for(let j=i+1;j<n-1;j++) for(let k=j+1;k<n;k++){
+    const ax=pts[i][0],ay=pts[i][1],bx=pts[j][0],by=pts[j][1],cx=pts[k][0],cy=pts[k][1];
+    const d=2*(ax*(by-cy)+bx*(cy-ay)+cx*(ay-by));
+    if(Math.abs(d)<1e-7) continue;
+    const a2=ax*ax+ay*ay,b2=bx*bx+by*by,c2=cx*cx+cy*cy;
+    const ux=(a2*(by-cy)+b2*(cy-ay)+c2*(ay-by))/d, uy=(a2*(cx-bx)+b2*(ax-cx)+c2*(bx-ax))/d;
+    const r2=(ax-ux)*(ax-ux)+(ay-uy)*(ay-uy);
+    let ok=true;
+    for(let m=0;m<n;m++){
+      if(m===i||m===j||m===k) continue;
+      const dx=pts[m][0]-ux,dy=pts[m][1]-uy;
+      if(dx*dx+dy*dy<r2-1e-4){ ok=false; break; }
+    }
+    if(ok) tris.push(d>0?[i,j,k]:[i,k,j]);
+  }
+  return tris;
+}
+function _g3dTinMesh(items,color,op,Z){ // items [[x,y,zAbs]] → TIN-поверхность; Z — ф-ция верт. масштаба
+  if(items.length<3) return null;
+  const pts=items.map(function(p){ return [p[0],p[1]]; });
+  const tris=_g3dDelaunay(pts);
+  const pos=new Float32Array(items.length*3);
+  items.forEach(function(p,i){ pos[i*3]=p[0]; pos[i*3+1]=Z(p[2]); pos[i*3+2]=p[1]; });
+  const idx=[]; tris.forEach(function(t){ idx.push(t[0],t[1],t[2]); });
+  const geo=new THREE.BufferGeometry();
+  geo.setAttribute('position',new THREE.BufferAttribute(pos,3));
+  geo.setIndex(idx); geo.computeVertexNormals();
+  const mat=new THREE.MeshLambertMaterial({color:color,transparent:true,opacity:op,side:THREE.DoubleSide,depthWrite:op>0.7});
+  return new THREE.Mesh(geo,mat);
+}
+function _g3dLabel(text,x,y,z){
+  const cv=document.createElement('canvas'); cv.width=256; cv.height=64;
+  const c=cv.getContext('2d');
+  c.fillStyle='rgba(255,253,248,0.9)'; c.fillRect(28,6,200,40);
+  c.strokeStyle='#14295E'; c.lineWidth=2; c.strokeRect(28,6,200,40);
+  c.fillStyle='#14295E'; c.font='bold 26px Segoe UI,Arial'; c.textAlign='center'; c.textBaseline='middle';
+  c.fillText(text,128,27);
+  const tx=new THREE.CanvasTexture(cv); tx.minFilter=THREE.LinearFilter;
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:tx,depthTest:false}));
+  sp.scale.set(24,6,1); sp.position.set(x,y,z);
+  return sp;
+}
+function geo3dBuild(){
+  const view=document.getElementById('g3dView'); if(!view||!window.THREE) return;
+  const cat=DB.igiCat, sub=G3D.sub, ve=G3D.ve;
+  const wells=igiWellsOf(sub).filter(function(p){ return cat.lithoExact&&cat.lithoExact[p[0]]; });
+  const note=document.getElementById('g3dNote');
+  if(wells.length<3){
+    if(note){ note.style.display='block'; note.textContent='Для 3D-модели нужно минимум 3 скважины с точными колонками (прил. Г4) — на этой подплощадке их меньше.'; }
+    return;
+  }
+  if(note){ note.style.display='none'; note.textContent=''; }
+  if(G3D.renderer){ try{ G3D.renderer.dispose(); }catch(e){} G3D.renderer=null; }
+  view.innerHTML='';
+  const scene=new THREE.Scene(); scene.background=new THREE.Color(0xfdfbf4);
+  let xMin=1e18,xMax=-1e18,yMin=1e18,yMax=-1e18,zMin=1e18,zMax=-1e18;
+  wells.forEach(function(p){ const W=p[1];
+    xMin=Math.min(xMin,W.x); xMax=Math.max(xMax,W.x);
+    yMin=Math.min(yMin,W.y); yMax=Math.max(yMax,W.y);
+    zMin=Math.min(zMin,W.h-W.dep); zMax=Math.max(zMax,W.h); });
+  const cx=(xMin+xMax)/2, cy=(yMin+yMax)/2;
+  const diag=Math.max(40,Math.hypot(xMax-xMin,yMax-yMin));
+  const zBase=zMin-2;
+  function Z(z){ return (z-zBase)*ve; }
+  function P(w){ const W=cat.wells[w]; return [W.x-cx, W.y-cy]; }
+  scene.add(new THREE.AmbientLight(0xffffff,0.72));
+  const dl=new THREE.DirectionalLight(0xffffff,0.55); dl.position.set(0.6,1,0.4); scene.add(dl);
+  const group=new THREE.Group(); scene.add(group);
+  const prof=igiTProf();
+  // 1) рельеф (TIN по устьям)
+  if(G3D.show.ground){
+    const items=wells.map(function(p){ const q=P(p[0]); return [q[0],q[1],p[1].h]; });
+    const m=_g3dTinMesh(items,0xb8b2a2,0.40,Z);
+    if(m) group.add(m);
+  }
+  // 2) поверхности кровли ИГЭ
+  if(G3D.show.surf){
+    const codes=[...new Set([].concat.apply([],wells.map(function(p){
+      return cat.lithoExact[p[0]].layers.map(function(l){ return l.ige||'ПРС'; }); })))];
+    codes.forEach(function(code){
+      const items=[];
+      wells.forEach(function(p){
+        const w=p[0],W=p[1];
+        const lay=cat.lithoExact[w].layers.filter(function(l){ return (l.ige||'ПРС')===code; })[0];
+        if(!lay) return;
+        const q=P(w); items.push([q[0],q[1],W.h-lay.top]);
+      });
+      const m=_g3dTinMesh(items,IGE_COL[code]||0xcfc8b8,0.78,Z);
+      if(m){ m.userData.code=code; group.add(m); }
+    });
+  }
+  // 3) изотерма 0 °C
+  if(G3D.show.iso){
+    const items=[];
+    wells.forEach(function(p){
+      const w=p[0],W=p[1], pr=prof[w]; if(!pr) return;
+      const z0=igiZeroDepth(pr); if(z0==null) return;
+      const q=P(w); items.push([q[0],q[1],W.h-z0]);
+    });
+    const m=_g3dTinMesh(items,0xEF3F23,0.5,Z);
+    if(m) group.add(m);
+  }
+  // 4) колонки скважин (стеки слоёв) + подписи
+  const bw=Math.max(1.6,diag/90);
+  if(G3D.show.wells) wells.forEach(function(p){
+    const w=p[0],W=p[1], q=P(w);
+    cat.lithoExact[w].layers.forEach(function(lay){
+      const code=lay.ige||'ПРС';
+      const zt=Z(W.h-lay.top), zb=Z(W.h-lay.bot), hh=Math.max(0.4,zt-zb);
+      const box=new THREE.Mesh(new THREE.BoxGeometry(bw,hh,bw),
+        new THREE.MeshLambertMaterial({color:IGE_COL[code]||0xcfc8b8}));
+      box.position.set(q[0],(zt+zb)/2,q[1]);
+      box.userData={w:w,code:code,top:lay.top,bot:lay.bot};
+      group.add(box);
+      const line=new THREE.LineSegments(new THREE.EdgesGeometry(box.geometry),
+        new THREE.LineBasicMaterial({color:0x3a352a}));
+      line.position.copy(box.position);
+      group.add(line);
+    });
+    group.add(_g3dLabel(w.replace('CK-',''), q[0], Z(W.h)+7, q[1]));
+  });
+  const Wpx=view.clientWidth||1100, Hpx=620;
+  const cam=new THREE.PerspectiveCamera(42,Wpx/Hpx,0.1,20000);
+  const renderer=new THREE.WebGLRenderer({antialias:true,preserveDrawingBuffer:true});
+  renderer.setSize(Wpx,Hpx);
+  renderer.setPixelRatio(Math.min(2,window.devicePixelRatio||1));
+  view.appendChild(renderer.domElement);
+  G3D.scene=scene; G3D.cam=cam; G3D.renderer=renderer;
+  G3D.dist=diag*1.62; G3D.cx=0; G3D.cy=(Z(zMax)+Z(zMin))*0.5; G3D.cz=0;
+  window.__geo3dInfo={wells:wells.length, meshes:group.children.length, sub:sub, ve:ve};
+  _g3dRender();
+}
+function _g3dRender(){
+  const c=G3D.cam; if(!c||!G3D.renderer) return;
+  if(G3D.auto) G3D.th+=0.004;
+  const d=G3D.dist;
+  c.position.set(G3D.cx+d*Math.sin(G3D.th)*Math.sin(G3D.ph),
+                 G3D.cy+d*Math.cos(G3D.ph),
+                 G3D.cz+d*Math.cos(G3D.th)*Math.sin(G3D.ph));
+  c.lookAt(G3D.cx,G3D.cy,G3D.cz);
+  G3D.renderer.render(G3D.scene,c);
+}
+function _g3dWireOnce(view){
+  if(view._g3dWired) return; view._g3dWired=true;
+  let drag=false,lx=0,ly=0,pan=false;
+  view.addEventListener('mousedown',function(e){ drag=true; pan=(e.button===2||e.shiftKey); lx=e.clientX; ly=e.clientY; });
+  window.addEventListener('mouseup',function(){ drag=false; });
+  window.addEventListener('mousemove',function(e){
+    if(!drag) return;
+    const dx=e.clientX-lx, dy=e.clientY-ly; lx=e.clientX; ly=e.clientY;
+    if(pan){
+      const k=G3D.dist/620;
+      G3D.cx-=dx*k*Math.cos(G3D.th); G3D.cz+=dx*k*Math.sin(G3D.th); G3D.cy+=dy*k;
+    } else {
+      G3D.th+=dx*0.006;
+      G3D.ph=Math.max(0.15,Math.min(1.5,G3D.ph-dy*0.005));
+    }
+    _g3dRender();
+  });
+  view.addEventListener('wheel',function(e){
+    e.preventDefault();
+    G3D.dist=Math.max(30,Math.min(6000,G3D.dist*(e.deltaY>0?1.1:0.9)));
+    _g3dRender();
+  },{passive:false});
+  view.addEventListener('contextmenu',function(e){ e.preventDefault(); });
+  view.addEventListener('dblclick',function(){ G3D.th=-0.8; G3D.ph=1.0; geo3dBuild(); });
+  G3D.timer=setInterval(function(){
+    if(G3D.auto&&document.getElementById('geo3dModal')&&document.getElementById('geo3dModal').style.display==='block') _g3dRender();
+  },40);
+}
+function geo3dOpen(o){
+  _g3dCss();
+  if(!document.getElementById('geo3dModal')){
+    const dv=document.createElement('div');
+    dv.id='geo3dModal';
+    dv.innerHTML='<div class="box">'
+      +'<button class="close" onclick="document.getElementById(\'geo3dModal\').style.display=\'none\'">✕</button>'
+      +'<h2 style="font-size:15px;margin:0 0 4px">🧊 3D-геологическая модель площадки</h2>'
+      +'<div class="normref" style="margin-bottom:6px">Точные границы слоёв — прил. Г4 «Инженерно-геологические колонки» (Том 5); поверхности кровли ИГЭ — TIN-интерполяция по скважинам подплощадки (триангуляция Делоне); рельеф и забой — каталог прил. 6. Изотерма 0 °C — по термометрии ИГИ-2022. ЛКМ — вращение, колесо — масштаб, Shift/ПКМ — сдвиг, двойной клик — сброс вида.</div>'
+      +'<div style="margin:4px 0 6px" id="g3dSubs"></div>'
+      +'<div style="margin:4px 0 6px">Преувеличение по вертикали: <select id="g3dVe"><option value="1">×1</option><option value="2">×2</option><option value="5" selected>×5</option><option value="10">×10</option></select> '
+      +'<button class="dbtn g3dTgl on" data-k="surf">Поверхности ИГЭ</button>'
+      +'<button class="dbtn g3dTgl on" data-k="wells">Скважины</button>'
+      +'<button class="dbtn g3dTgl on" data-k="ground">Рельеф</button>'
+      +'<button class="dbtn g3dTgl" data-k="iso">Изотерма 0 °C</button> '
+      +'<button class="dbtn" id="g3dAuto">⟳ вращение</button> '
+      +'<button class="dbtn" id="g3dPng">⇩ PNG</button></div>'
+      +'<div id="g3dNote" class="note" style="display:none"></div>'
+      +'<div id="g3dView"></div>'
+      +'<div id="g3dLegend" style="margin-top:6px;font-size:11.5px"></div>'
+      +'</div>';
+    document.body.appendChild(dv);
+    document.getElementById('g3dVe').onchange=function(e){ G3D.ve=+e.target.value; geo3dBuild(); };
+    document.getElementById('g3dAuto').onclick=function(){ G3D.auto=!G3D.auto; this.classList.toggle('on',G3D.auto); };
+    document.getElementById('g3dPng').onclick=function(){
+      if(!G3D.renderer) return;
+      _g3dRender();
+      const src=G3D.renderer.domElement;
+      const cv=document.createElement('canvas'); cv.width=src.width; cv.height=src.height+56;
+      const c=cv.getContext('2d');
+      c.fillStyle='#fffdf8'; c.fillRect(0,0,cv.width,cv.height);
+      c.drawImage(src,0,0);
+      c.fillStyle='#14295E'; c.font='bold 24px Segoe UI,Arial';
+      c.fillText('3D-геологическая модель · подплощадка '+G3D.sub+' · ООО «Черногорская ГРК» (прил. Г4, Том 5)',22,src.height+36);
+      cv.toBlob(function(b){ const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='3D_геология_'+G3D.sub+'.png'; a.click(); });
+    };
+    dv.querySelectorAll('.g3dTgl').forEach(function(b){
+      b.onclick=function(){ const k=b.dataset.k; G3D.show[k]=!G3D.show[k]; b.classList.toggle('on',G3D.show[k]); geo3dBuild(); };
+    });
+    _g3dWireOnce(dv.querySelector('#g3dView'));
+  }
+  const cat=DB.igiCat;
+  const subs=[...new Set(Object.keys(cat.wells).map(function(w){ return cat.wells[w].sub; }))].sort();
+  const cur=o?igiObjSub(o):null;
+  G3D.sub=cur||G3D.sub||subs[0];
+  document.getElementById('g3dSubs').innerHTML='Подплощадка: '+subs.map(function(sb){
+    const n=Object.keys(cat.wells).filter(function(w){ return cat.wells[w].sub===sb; }).length;
+    return '<button class="dbtn g3dSub'+(sb===G3D.sub?' on':'')+'" data-s="'+sb+'" style="padding:1px 8px;font-size:11.5px;margin-right:3px">'+sb+' ('+n+')</button>';
+  }).join('');
+  document.querySelectorAll('.g3dSub').forEach(function(b){
+    b.onclick=function(){
+      G3D.sub=b.dataset.s;
+      document.querySelectorAll('.g3dSub').forEach(function(x){ x.classList.toggle('on',x.dataset.s===G3D.sub); });
+      geo3dBuild();
+    };
+  });
+  ['surf','wells','ground','iso'].forEach(function(k){
+    const b=document.querySelector('.g3dTgl[data-k="'+k+'"]');
+    if(b) b.classList.toggle('on',G3D.show[k]);
+  });
+  document.getElementById('geo3dModal').style.display='block';
+  // легенда ИГЭ подплощадки
+  const wells=igiWellsOf(G3D.sub).filter(function(p){ return cat.lithoExact&&cat.lithoExact[p[0]]; });
+  const codes=[...new Set([].concat.apply([],wells.map(function(p){
+    return cat.lithoExact[p[0]].layers.map(function(l){ return l.ige||'ПРС'; }); })))];
+  document.getElementById('g3dLegend').innerHTML=codes.map(function(c){
+    const nm=c==='ПРС'?'погребённый почвенно-растительный слой':('ИГЭ '+c+' · '+((cat.ige[c]||{}).name||'').slice(0,60));
+    return '<span style="display:inline-block;margin:1px 10px 1px 0"><span style="display:inline-block;width:11px;height:11px;border-radius:2px;background:'+(IGE_COL[c]||'#cfc8b8')+';margin-right:4px"></span>'+esc(nm)+'…</span>';
+  }).join('');
+  _g3dLoadThree(function(){ setTimeout(geo3dBuild,60); });
 }
 
 function tabIgi(o, el){
@@ -9445,8 +9746,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"Jes8SjLMhunQSZsyHmPGAw==",ivV:"Ma8CWpBF9IKi6ukt",wrapV:"aKi6lx82jX9iHUJslSM4GUO//UzY8sHl4wlbbqjIZpfSEvIBnGVN0MAoHq7ZToA6",saltE:"e1R3biF78qBcq/a3fDtdTw==",ivE:"57ST0AbI6r1S+liA",wrapE:"Xu0PcAR+9yJ+HD2+Sxkb/Nkf1xYaBLiKfjSiP8T7YeWVZydveao6uhvYfvpXRJXt",ivD:"3cKx9PQz+Q+vfn98"};
-const BUILD="a35a3217";
+const ENC={saltV:"t5j29k9WvMA2d88hi4RcQA==",ivV:"SdHwdIPHKRjt/mre",wrapV:"WXuIINqAYL6cE9fugyIls0CIXznGzUaX1zsg09NTgtRUSGK3WljyQ5kjEjkGuf3c",saltE:"bVfjsE/7OgOcreLr8U75uw==",ivE:"xYnNnCaj83QUgb48",wrapE:"3N0075+RqZzDVCuuUB/WEkguYiK63qEYlSvVoqNEqZR9L6ru8atgqNVIjJempLYa",ivD:"+CV1ronMfnWmvINN"};
+const BUILD="fcb7d20d";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
