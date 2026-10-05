@@ -818,14 +818,14 @@
   </div>
 </div>
 
-<script src="db_p1.js?v=fcb7d20d"></script>
-<script src="db_p2.js?v=fcb7d20d"></script>
-<script src="db_p3.js?v=fcb7d20d"></script>
-<script src="db_p4.js?v=fcb7d20d"></script>
-<script src="db_p5.js?v=fcb7d20d"></script>
-<script src="db_p6.js?v=fcb7d20d"></script>
-<script src="db_p7.js?v=fcb7d20d"></script>
-<script src="db_p8.js?v=fcb7d20d"></script>
+<script src="db_p1.js?v=5acd981d"></script>
+<script src="db_p2.js?v=5acd981d"></script>
+<script src="db_p3.js?v=5acd981d"></script>
+<script src="db_p4.js?v=5acd981d"></script>
+<script src="db_p5.js?v=5acd981d"></script>
+<script src="db_p6.js?v=5acd981d"></script>
+<script src="db_p7.js?v=5acd981d"></script>
+<script src="db_p8.js?v=5acd981d"></script>
 <script src="kadastr.js?v=20260911b"></script>
 <script src="niokr.js?v=2a2678272c"></script>
 <script src="layers.js?v=20260913a"></script>
@@ -3021,7 +3021,7 @@ let SEC={sel:[], ve:5};
 function igiSecOpen(o){
   const cat=DB.igiCat; if(!cat) return;
   const sub=o?igiObjSub(o):null;
-  SEC={sel:igiWellsOf(sub).map(([w])=>w).slice(0,0), ve:5, sub:sub};
+  SEC={sel:igiWellsOf(sub).map(([w])=>w).slice(0,0), ve:5, sub:sub, ref:null, refShow:true};
   const groups={};
   for(const w in cat.wells){ const W=cat.wells[w]; (groups[W.sub]=groups[W.sub]||[]).push(w); }
   const ghtml=Object.keys(groups).sort().map(g=>{
@@ -3035,6 +3035,9 @@ function igiSecOpen(o){
   <div style="margin:6px 0">Линия разреза: <span id="secSel" style="font-weight:600; color:var(--mut)">не выбрана</span>
     <button class="dbtn" id="secAuto" title="Упорядочить по ближайшему соседу от первой скважины">⇄ Автоцепочка</button>
     <button class="dbtn" id="secClear">Очистить</button></div>
+  <div style="margin:6px 0">Эталон прил. Г5: <select id="secRef" style="max-width:420px"><option value="">— не выбран —</option></select>
+    <button class="dbtn" id="secRefLoad" title="Подставить цепочку скважин выбранного листа прил. Г5">⇩ Линия по эталону</button>
+    <label style="font-size:11.5px;margin-left:8px"><input type="checkbox" id="secRefShow" checked> показать эталон на разрезе</label></div>
   <div style="margin:6px 0">Вертикальное преувеличение: <select id="secVe"><option value="1">×1</option><option value="2">×2</option><option value="5" selected>×5</option><option value="10">×10</option></select>
     <button class="dbtn" id="secBuild" style="font-weight:700">Построить разрез</button>
     <button class="dbtn" id="secPng" title="Выгрузить построенный разрез в PNG">⇩ PNG</button></div>
@@ -3058,9 +3061,25 @@ function igiSecOpen(o){
     SEC.sel=out; igiSecSelShow();
   };
   mb.querySelector('#secVe').onchange=e=>{ SEC.ve=+e.target.value; };
+  const refSel=mb.querySelector('#secRef');
+  (cat.secRef||[]).forEach((sh,i)=>{
+    const op=document.createElement('option'); op.value=i;
+    op.textContent='лист '+sh.sheet+' · '+sh.wells.join(' → ')+' ('+sh.regions.length+' рег.)';
+    refSel.appendChild(op);
+  });
+  refSel.onchange=()=>{ SEC.ref=refSel.value===''?null:cat.secRef[+refSel.value]; };
+  mb.querySelector('#secRefShow').onchange=e=>{ SEC.refShow=e.target.checked; };
+  mb.querySelector('#secRefLoad').onclick=()=>{
+    if(!SEC.ref) return;
+    const ok=SEC.ref.wells.every(w=>cat.wells[w]);
+    if(!ok){ alert('Часть скважин эталона отсутствует в каталоге'); return; }
+    SEC.sel=SEC.ref.wells.slice();
+    mb.querySelectorAll('.secWell').forEach(x=>x.classList.toggle('on',SEC.sel.indexOf(x.dataset.w)>=0));
+    igiSecSelShow();
+  };
   mb.querySelector('#secBuild').onclick=()=>{
     if(SEC.sel.length<2){ alert('Выберите минимум две скважины'); return; }
-    document.getElementById('secOut').innerHTML=igiSecSvg(SEC.sel,SEC.ve);
+    document.getElementById('secOut').innerHTML=igiSecSvg(SEC.sel,SEC.ve,(SEC.refShow?SEC.ref:null));
   };
   mb.querySelector('#secPng').onclick=()=>{
     const svg=document.querySelector('#secOut svg'); if(!svg){ alert('Сначала постройте разрез'); return; }
@@ -3084,7 +3103,7 @@ function igiSecSelShow(){
   el.textContent=SEC.sel.length?('I—I: '+SEC.sel.join(' → ')):'не выбрана';
   el.style.color=SEC.sel.length?'#14295E':'var(--mut)';
 }
-function igiSecSvg(wids,ve){
+function igiSecSvg(wids,ve,refSheet){
   const cat=DB.igiCat, cols=wids.map(igiColumn);
   if(cols.some(c=>!c)) return '<div class="note">Для части скважин колонка не строится — проверьте выбор.</div>';
   // расстояния по МСК
@@ -3105,7 +3124,7 @@ function igiSecSvg(wids,ve){
   let g='';
   // определения: штриховка скальных
   g+=`<defs><pattern id="rkh" width="7" height="7" patternTransform="rotate(45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#ef9a9a"/><line x1="0" y1="0" x2="0" y2="7" stroke="#b04a3a" stroke-width="1.4"/></pattern>
-  <pattern id="rkh2" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#e57373"/><line x1="0" y1="0" x2="0" y2="7" stroke="#8e3226" stroke-width="1.4"/></pattern></defs>`;
+  <pattern id="rkh2" width="7" height="7" patternTransform="rotate(-45)" patternUnits="userSpaceOnUse"><rect width="7" height="7" fill="#e57373"/><line x1="0" y1="0" x2="0" y2="7" stroke="#8e3226" stroke-width="1.4"/></pattern><clipPath id="secClip"><rect x="${mL}" y="${mT}" width="${Wp-mL-mR}" height="${Y(zMin)-mT}"/></clipPath></defs>`;
   // тела ИГЭ: пробеги по скважинам с выклиниванием (коды сверх IGE_ORD — напр. погр. ПРС из прил. Г4)
   const extraCodes=[...new Set(cols.flatMap(c=>c.layers.map(l=>l.ige)).filter(c=>c&&IGE_ORD.indexOf(c)<0))];
   IGE_ORD.concat(extraCodes).forEach(code=>{
@@ -3130,6 +3149,53 @@ function igiSecSvg(wids,ve){
   });
   // рамка-невидимка сверху: рельеф
   g+=`<polyline points="${cols.map((c,i)=>X(i)+','+Y(c.W.h)).join(' ')}" fill="none" stroke="#2f2a20" stroke-width="1.6"/>`;
+  // === эталонный оверлей прил. Г5 ===
+  let refStats=null;
+  if(refSheet && JSON.stringify(refSheet.wells)===JSON.stringify(wids)){
+    const Xp=p=>{ const i=Math.floor(p), f=p-i;
+      if(i>=cols.length-1) return X(cols.length-1);
+      return X(i)+f*(X(i+1)-X(i)); };
+    const Pts=a=>a.map(q=>Xp(q[0]).toFixed(1)+','+Y(q[1]).toFixed(1)).join(' ');
+    g+=`<g clip-path="url(#secClip)">`;
+    // регионы ИГЭ
+    refSheet.regions.forEach(r=>{
+      const col=IGE_COL[r.ige]||'#cfc8b8';
+      g+=`<polygon points="${Pts(r.pts)}" fill="${col}" fill-opacity="0.16" stroke="#14295E" stroke-width="1.1" stroke-dasharray="6,3"><title>Эталон прил. Г5: ${escS(r.pat)}${r.ige?' · ИГЭ '+r.ige:''} (лист ${refSheet.sheet})</title></polygon>`;
+    });
+    // рельеф эталона
+    if(refSheet.relief.length>1)
+      g+=`<polyline points="${Pts(refSheet.relief)}" fill="none" stroke="#2f2a20" stroke-width="1.4" stroke-dasharray="9,4"><title>Рельеф по прил. Г5</title></polyline>`;
+    // СТС/СМС
+    refSheet.sts.forEach(l=>{
+      g+=`<polyline points="${Pts(l)}" fill="none" stroke="#6a3fb5" stroke-width="1.3" stroke-dasharray="2,3"><title>Граница СТС/СМС по прил. Г5 (лист ${refSheet.sheet})</title></polyline>`;
+    });
+    // фундаменты — только контуром (на чертеже совмещены с рамкой графика)
+    refSheet.found.forEach(f=>{
+      g+=`<polygon points="${Pts(f)}" fill="none" stroke="#777" stroke-width="1" stroke-dasharray="4,2"><title>Контур сооружения/фундаментов по прил. Г5 (лист ${refSheet.sheet})</title></polygon>`;
+    });
+    g+=`</g>`;
+    // сверка: по каждому региону — на скважинах внутри его пролёта (в пределах забоя)
+    let nCmp=0, nOk=0, maxDev=0;
+    refSheet.regions.forEach(r=>{
+      if(!r.ige) return;
+      const ps=r.pts.map(q=>q[0]);
+      const p0=Math.min.apply(null,ps), p1=Math.max.apply(null,ps);
+      cols.forEach((c,i)=>{
+        if(i<p0-0.06||i>p1+0.06) return;
+        const vs=r.pts.filter(q=>Math.abs(q[0]-i)<0.09).map(q=>q[1])
+          .filter(e=>e>=c.W.h-c.W.dep-0.3);
+        if(vs.length<2) return;
+        const lay=c.layers.find(l=>l.ige===r.ige); if(!lay) return;
+        nCmp++;
+        const fe0=Math.min.apply(null,vs), fe1=Math.max.apply(null,vs);
+        const dev=Math.max(Math.abs(fe0-lay.botAbs),Math.abs(fe1-lay.topAbs));
+        if(dev>maxDev) maxDev=dev;
+        const ov=Math.min(fe1,lay.topAbs)-Math.max(fe0,lay.botAbs);
+        if(ov>-0.5) nOk++;
+      });
+    });
+    refStats={cmp:nCmp, ok:nOk, dev:maxDev};
+  }
   // скважины
   cols.forEach((c,i)=>{
     g+=`<line x1="${X(i)}" y1="${Y(c.W.h)}" x2="${X(i)}" y2="${Y(c.W.h-c.W.dep)}" stroke="#1c1a16" stroke-width="2.2"/>`;
@@ -3164,6 +3230,12 @@ function igiSecSvg(wids,ve){
     lx+=86;
   });
   g+=`<line x1="${lx+6}" y1="${Hp-19}" x2="${lx+30}" y2="${Hp-19}" stroke="#EF3F23" stroke-width="1.6" stroke-dasharray="5,3"/><text x="${lx+34}" y="${Hp-15}" font-size="9.5" fill="#333">t = 0 °C</text>`;
+  if(refStats){
+    g+=`<rect x="${lx+120}" y="${Hp-24}" width="12" height="10" fill="#14295E" fill-opacity="0.16" stroke="#14295E" stroke-width="0.8" stroke-dasharray="3,2"/><text x="${lx+136}" y="${Hp-15}" font-size="9.5" fill="#333">эталон прил. Г5 (лист ${refSheet.sheet})</text>`;
+    g+=`<text x="${mL}" y="${Hp-4}" font-size="10" fill="#14295E">Сверка с эталоном прил. Г5: совпадение интервалов ИГЭ на скважинах — ${refStats.ok} из ${refStats.cmp}, макс. расхождение отметок ${refStats.dev.toFixed(2).replace('.',',')} м.</text>`;
+  } else if(refSheet){
+    g+=`<text x="${mL}" y="${Hp-4}" font-size="10" fill="#c8372d">Линия разреза не совпадает с эталоном листа ${refSheet.sheet} — нажмите «⇩ Линия по эталону».</text>`;
+  }
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${Wp.toFixed(0)}" height="${Hp.toFixed(0)}" viewBox="0 0 ${Wp.toFixed(0)} ${Hp.toFixed(0)}" style="background:#fffdf8;font-family:'Segoe UI',Arial,sans-serif">${g}</svg>`;
 }
 
@@ -3295,18 +3367,18 @@ function geo3dBuild(){
     if(m) group.add(m);
   }
   // 4) колонки скважин (стеки слоёв) + подписи
-  const bw=Math.max(1.6,diag/90);
+  const rr=Math.max(0.8,diag/220);
   if(G3D.show.wells) wells.forEach(function(p){
     const w=p[0],W=p[1], q=P(w);
     cat.lithoExact[w].layers.forEach(function(lay){
       const code=lay.ige||'ПРС';
       const zt=Z(W.h-lay.top), zb=Z(W.h-lay.bot), hh=Math.max(0.4,zt-zb);
-      const box=new THREE.Mesh(new THREE.BoxGeometry(bw,hh,bw),
+      const box=new THREE.Mesh(new THREE.CylinderGeometry(rr,rr,hh,20),
         new THREE.MeshLambertMaterial({color:IGE_COL[code]||0xcfc8b8}));
       box.position.set(q[0],(zt+zb)/2,q[1]);
       box.userData={w:w,code:code,top:lay.top,bot:lay.bot};
       group.add(box);
-      const line=new THREE.LineSegments(new THREE.EdgesGeometry(box.geometry),
+      const line=new THREE.LineSegments(new THREE.EdgesGeometry(box.geometry,30),
         new THREE.LineBasicMaterial({color:0x3a352a}));
       line.position.copy(box.position);
       group.add(line);
@@ -9746,8 +9818,8 @@ setInterval(()=>{ if(gsCur&&gsViewDay&&gsViewDay!==todayKey()){ gsBadges(0); gsO
 })();
 
 };
-const ENC={saltV:"t5j29k9WvMA2d88hi4RcQA==",ivV:"SdHwdIPHKRjt/mre",wrapV:"WXuIINqAYL6cE9fugyIls0CIXznGzUaX1zsg09NTgtRUSGK3WljyQ5kjEjkGuf3c",saltE:"bVfjsE/7OgOcreLr8U75uw==",ivE:"xYnNnCaj83QUgb48",wrapE:"3N0075+RqZzDVCuuUB/WEkguYiK63qEYlSvVoqNEqZR9L6ru8atgqNVIjJempLYa",ivD:"+CV1ronMfnWmvINN"};
-const BUILD="fcb7d20d";
+const ENC={saltV:"MiYfYhDT2n9bBwoT/G9AdQ==",ivV:"zsSVENy+HczwX5xR",wrapV:"76dUjT2yWCODVwE1V9Xc6zB7dXxg3YpedW4XoRYwU/KvA0Cv6ddDZtiMsMujrJKl",saltE:"2o8wApQ4ysb2TmGVcJ8Epg==",ivE:"MJteWz3ycSShL3ut",wrapE:"aajvOVs55wA1KGYLQnHr76gzSHNhjHg1bVbp9h23QxuNnWQU1QnFFmobKDnST8M9",ivD:"U5Weg6mb/syKO4jH"};
+const BUILD="5acd981d";
 function enterApp(role){ sessionStorage.setItem("gtm_role",role); document.body.classList.add("authed","role-"+role); document.getElementById("loginModal").style.display="none"; document.getElementById("roleBadge").textContent=role==="edit"?"оператор":(role==="insp"?"надзор":"наблюдатель"); }
 const _b64=s=>Uint8Array.from(atob(s),c=>c.charCodeAt(0));
 async function _unwrap(pw,saltB,ivB,wrapB){
